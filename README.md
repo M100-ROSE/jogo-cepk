@@ -185,6 +185,19 @@ Ao pausar o jogo (`P`/`Esc`), o modo ativo (local ou YouTube) pausa e retoma
 junto. Ao vencer ou perder, ele também fica pausado; ao reiniciar, volta a
 tocar do ponto em que parou.
 
+## Deploy no Render
+
+O projeto é um site estático puro (HTML/CSS/JS, sem build), então o deploy no
+[Render](https://render.com) não precisa de Node, npm nem variáveis de ambiente.
+
+**Opção Blueprint (recomendada):** em **New → Blueprint**, selecione o
+repositório. O `render.yaml` já configura tudo: static site, branch `master`,
+publish path `.` e deploy automático.
+
+**Opção manual:** em **New → Static Site**, selecione o repositório
+`M100-ROSE/jogo-cepk` e a branch `master`, deixe o **Build Command vazio** e
+preencha o **Publish Directory** com `.`.
+
 ## Estrutura do projeto
 
 ```

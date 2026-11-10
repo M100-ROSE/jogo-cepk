@@ -1,0 +1,7 @@
+services:
+  - type: web
+    name: jogo-cepk
+    branch: master
+    runtime: static
+    staticPublishPath: .
+    autoDeploy: true
