@@ -1,0 +1,398 @@
+:root {
+  --ink: #05070a;
+  --gold: #e6bb4f;
+  --green: #5cbf62;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  overflow: hidden;
+  background: #05070a;
+}
+
+body {
+  font-family: "Trebuchet MS", "Segoe UI", sans-serif;
+  color: #c9d2df;
+  background:
+    radial-gradient(circle at 50% 42%, #101a22 0%, #070b0f 55%, #030405 100%);
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: none;
+}
+
+#stage {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px;
+}
+
+#frame {
+  position: relative;
+  display: inline-block;
+  line-height: 0;
+  border: 2px solid #1c2836;
+  border-radius: 4px;
+  box-shadow:
+    0 0 0 1px #05070a,
+    0 0 28px rgba(92, 191, 98, 0.12),
+    0 24px 60px rgba(0, 0, 0, 0.8);
+  background: #05070a;
+}
+
+canvas#game {
+  display: block;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  background: #05070a;
+  border-radius: 2px;
+}
+
+.scanlines {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-radius: 2px;
+  background: repeating-linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 0.028) 0px,
+    rgba(255, 255, 255, 0.028) 1px,
+    rgba(0, 0, 0, 0) 1px,
+    rgba(0, 0, 0, 0) 3px
+  );
+  mix-blend-mode: overlay;
+}
+
+/* Controles de toque */
+#touch {
+  display: none;
+  position: fixed;
+  inset: auto 0 0 0;
+  padding: 14px 18px 18px;
+  pointer-events: none;
+  z-index: 20;
+}
+
+body.touch #touch {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+}
+
+.dpad {
+  position: relative;
+  width: 132px;
+  height: 132px;
+  pointer-events: auto;
+}
+
+.dpad button,
+.actions button {
+  position: absolute;
+  border: 1px solid rgba(150, 175, 205, 0.35);
+  background: rgba(12, 18, 26, 0.62);
+  color: #c9d2df;
+  font-size: 18px;
+  border-radius: 10px;
+  width: 42px;
+  height: 42px;
+  touch-action: none;
+  -webkit-tap-highlight-color: transparent;
+  backdrop-filter: blur(2px);
+}
+
+.dpad button.active,
+.actions button:active {
+  background: rgba(92, 191, 98, 0.4);
+  border-color: var(--green);
+}
+
+.dpad .up {
+  left: 45px;
+  top: 0;
+}
+
+.dpad .down {
+  left: 45px;
+  top: 90px;
+}
+
+.dpad .left {
+  left: 0;
+  top: 45px;
+}
+
+.dpad .right {
+  left: 90px;
+  top: 45px;
+}
+
+.actions {
+  position: relative;
+  display: flex;
+  gap: 10px;
+  align-items: flex-end;
+  pointer-events: auto;
+}
+
+.actions button {
+  position: static;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+#btn-action {
+  width: 68px;
+  height: 68px;
+  background: rgba(92, 191, 98, 0.28);
+  border-color: rgba(92, 191, 98, 0.7);
+  color: #dfffe2;
+}
+
+#btn-heavy {
+  width: 58px;
+  height: 58px;
+  font-size: 11px;
+  background: rgba(230, 187, 79, 0.22);
+  border-color: rgba(230, 187, 79, 0.65);
+  color: #ffe9a3;
+}
+
+#btn-def {
+  background: rgba(90, 140, 190, 0.24);
+  border-color: rgba(120, 170, 220, 0.6);
+  color: #d7ecff;
+}
+
+#btn-def.active {
+  background: rgba(120, 180, 240, 0.5);
+  border-color: #bfe2ff;
+  color: #ffffff;
+}
+
+#btn-map,
+#btn-drop {
+  opacity: 0.75;
+}
+
+/* Telas estreitas: com 5 botões, o grid 3x2 evita espremer o direcional.
+   O limite cobre celulares de 431–520px, onde o flex ainda estouraria. */
+@media (max-width: 520px) {
+  #touch {
+    padding: 10px 10px 14px;
+  }
+  .dpad {
+    flex: 0 0 auto;
+    width: 124px;
+    height: 124px;
+  }
+  .dpad button {
+    width: 40px;
+    height: 40px;
+  }
+  .dpad .up,
+  .dpad .down {
+    left: 42px;
+  }
+  .dpad .down {
+    top: 84px;
+  }
+  .dpad .left,
+  .dpad .right {
+    top: 42px;
+  }
+  .dpad .right {
+    left: 84px;
+  }
+  .actions {
+    display: grid;
+    grid-template-columns: repeat(3, auto);
+    gap: 5px;
+    justify-items: end;
+    align-content: end;
+  }
+  .actions button {
+    width: 42px;
+    height: 42px;
+    font-size: 11px;
+  }
+  #btn-action {
+    width: 54px;
+    height: 54px;
+  }
+  #btn-heavy {
+    width: 48px;
+    height: 48px;
+    font-size: 10px;
+  }
+}
+
+@media (max-width: 340px) {
+  #touch {
+    padding: 8px 8px 12px;
+  }
+  .dpad {
+    width: 104px;
+    height: 104px;
+  }
+  .dpad button {
+    width: 34px;
+    height: 34px;
+    font-size: 15px;
+  }
+  .dpad .up,
+  .dpad .down {
+    left: 35px;
+  }
+  .dpad .down {
+    top: 70px;
+  }
+  .dpad .left,
+  .dpad .right {
+    top: 35px;
+  }
+  .dpad .right {
+    left: 70px;
+  }
+  .actions {
+    gap: 4px;
+  }
+  .actions button {
+    width: 38px;
+    height: 38px;
+    font-size: 10px;
+  }
+  #btn-action {
+    width: 44px;
+    height: 44px;
+  }
+  #btn-heavy {
+    width: 50px;
+    height: 50px;
+    font-size: 9px;
+  }
+}
+
+@media (max-height: 480px) {
+  .dpad {
+    transform: scale(0.85);
+    transform-origin: bottom left;
+  }
+  .actions button {
+    width: 46px;
+    height: 46px;
+  }
+  #btn-action {
+    width: 58px;
+    height: 58px;
+  }
+  #btn-heavy {
+    width: 52px;
+    height: 52px;
+  }
+}
+
+/* Mini-player do YouTube (modo secreto 0717) */
+#yt-music {
+  position: fixed;
+  right: 12px;
+  bottom: 12px;
+  width: 240px;
+  z-index: 30;
+  background: rgba(8, 10, 14, 0.96);
+  border: 1px solid rgba(230, 187, 79, 0.35);
+  border-radius: 5px;
+  box-shadow:
+    0 0 0 1px rgba(5, 7, 10, 0.9),
+    0 10px 30px rgba(0, 0, 0, 0.65);
+  overflow: hidden;
+  pointer-events: auto;
+}
+
+.yt-music__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  padding: 3px 4px 3px 7px;
+  background: rgba(16, 24, 32, 0.95);
+  border-bottom: 1px solid rgba(230, 187, 79, 0.22);
+}
+
+.yt-music__title {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  color: #e6bb4f;
+}
+
+.yt-music__close {
+  flex: 0 0 auto;
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  border: 0;
+  border-radius: 3px;
+  background: transparent;
+  color: #9fb0c4;
+  font-size: 11px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.yt-music__close:hover,
+.yt-music__close:focus-visible {
+  background: rgba(230, 187, 79, 0.2);
+  color: #ffe9a3;
+  outline: none;
+}
+
+.yt-music__player {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  background: #000;
+}
+
+.yt-music__player iframe {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
+/* Mobile: menor e acima dos controles de toque */
+@media (max-width: 700px) {
+  #yt-music {
+    width: 160px;
+    right: 10px;
+    bottom: 158px;
+  }
+  .yt-music__head {
+    padding: 2px 3px 2px 5px;
+  }
+  .yt-music__title {
+    font-size: 9px;
+  }
+}
+
+body.touch #yt-music {
+  width: 160px;
+  right: 10px;
+  bottom: 158px;
+}

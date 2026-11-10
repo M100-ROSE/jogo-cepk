@@ -1,0 +1,17 @@
+{
+  "project": "Lobo Cinza — O Cálice de Ouro",
+  "generatedWith": "SpriteCook MCP",
+  "assets": [
+    {
+      "name": "Lobo - folha 4 direções",
+      "assetId": "12ddf9be-ea7c-454e-ab52-f8598d3a1dac",
+      "tool": "generate_game_art",
+      "model": "gpt-image-2",
+      "description": "Lobo cinza antropomórfico de uniforme escolar: jaqueta preta com mangas verdes, calça preta com listras verdes nas laterais. Folha com 4 direções (baixo, cima, esquerda, direita).",
+      "source": "assets/player_sheet.png",
+      "frameSize": [32, 48],
+      "frames": ["down", "up", "left", "right"],
+      "embeddedIn": "js/assets.js"
+    }
+  ]
+}

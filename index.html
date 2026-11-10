@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"
+    />
+    <meta name="theme-color" content="#05070a" />
+    <title>Lobo Cinza — O Cálice de Ouro</title>
+    <link rel="stylesheet" href="css/style.css" />
+  </head>
+  <body>
+    <div id="stage">
+      <div id="frame">
+        <canvas id="game" width="400" height="300" aria-label="Lobo Cinza, o Cálice de Ouro"></canvas>
+        <div class="scanlines"></div>
+      </div>
+    </div>
+
+    <div id="touch" aria-hidden="true">
+      <div class="dpad">
+        <button class="up" data-dir="up">▲</button>
+        <button class="left" data-dir="left">◀</button>
+        <button class="right" data-dir="right">▶</button>
+        <button class="down" data-dir="down">▼</button>
+      </div>
+      <div class="actions">
+        <button id="btn-map">M</button>
+        <button id="btn-drop">Q</button>
+        <button id="btn-heavy">GOLPE</button>
+        <button id="btn-def">DEF</button>
+        <button id="btn-action">AÇÃO</button>
+      </div>
+    </div>
+
+    <script>
+      // Ativa controles de toque apenas em aparelhos com toque
+      (function () {
+        var hasTouch =
+          "ontouchstart" in window ||
+          (navigator.maxTouchPoints && navigator.maxTouchPoints > 0) ||
+          (window.matchMedia && window.matchMedia("(pointer: coarse)").matches);
+        if (hasTouch) document.body.classList.add("touch");
+      })();
+    </script>
+
+    <script src="js/util.js"></script>
+    <script src="js/font.js"></script>
+    <script src="js/audio.js"></script>
+    <script src="js/playlist.js"></script>
+    <script src="js/youtube.js"></script>
+    <script src="js/assets.js"></script>
+    <script src="js/world.js"></script>
+    <script src="js/render.js"></script>
+    <script src="js/game.js"></script>
+  </body>
+</html>
