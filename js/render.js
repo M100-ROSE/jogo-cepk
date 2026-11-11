@@ -963,48 +963,55 @@ function drawThemeExtras(c, room, p) {
     });
   }
 
-  // rachadura suspeita na parede leste da escadaria (passagem secreta)
-  if (room.id === 'escadaria' && !room.secretRevealed) {
-    drawCrackEast(c, INNER.r, DOOR_CY, '#241c14', 'rgba(210,210,200,0.22)');
-  }
-  // parede leste da Fonte Esquecida → Templo de Lito
-  if (room.id === 'fonte' && !room.secretRevealed) {
-    drawCrackEast(c, INNER.r, DOOR_CY, '#1d231c', 'rgba(214,224,206,0.28)');
-  }
-  // parede sul do Salão do Trono → Biblioteca de Marx
-  if (room.id === 'salao_final' && !room.secretRevealed) {
-    drawCrackSouth(c, DOOR_CX, INNER.b, '#1c1a17', 'rgba(214,210,200,0.24)');
-  }
-  // parede sul do Sagrário → Pódio de Senna
-  if (room.id === 'sagrario' && !room.secretRevealed) {
-    drawCrackSouth(c, DOOR_CX, INNER.b, '#181614', 'rgba(206,202,192,0.22)');
-  }
-  // parede oeste do Cemitério Antigo → Arquivo de Trótski
-  if (room.id === 'cemiterio' && !room.secretRevealed) {
-    drawCrackWest(c, INNER.x, DOOR_CY, '#13150f', 'rgba(198,208,186,0.45)');
-  }
-  // parede leste do Abismo → Fonte Sombria
-  if (room.id === 'abismo' && !room.secretRevealed) {
-    drawCrackEast(c, INNER.r, DOOR_CY, '#080a10', 'rgba(184,160,236,0.50)');
-  }
-  // parede leste da Serra Rochosa → Mina Esquecida
-  if (room.id === 'serra' && !room.secretRevealed) {
-    drawCrackEast(c, INNER.r, DOOR_CY, '#141117', 'rgba(208,204,224,0.42)');
-  }
-  // parede norte da Floresta Antiga → Obby Perdido
-  if (room.id === 'floresta' && !room.secretRevealed) {
-    drawCrackNorth(c, DOOR_CX, INNER.y, '#1d160f', 'rgba(222,232,214,0.42)');
-  }
-  // parede norte da Cabana Abandonada → Estúdio da Rbiana
-  if (room.id === 'cabana' && !room.secretRevealed) {
-    drawCrackNorth(c, DOOR_CX, INNER.y, '#1a120a', 'rgba(236,220,196,0.44)');
-  }
-
   drawTorchBrackets(c, room);
 }
 
 /* Rachaduras de passagem secreta: pistas visuais em paredes ainda fechadas.
-   A lógica de revelação continua no jogo; aqui só desenhamos a pista. */
+   A lógica de revelação continua no jogo; aqui só desenhamos a pista.
+   As pistas são desenhadas por quadro e só aparecem quando o jogador chega
+   bem perto da parede certa, mantendo os segredos realmente escondidos. */
+const SECRET_HINT_STYLE = {
+  escadaria: { dark: '#241c14', light: '#d2d2c8' },
+  fonte: { dark: '#1d231c', light: '#d6e0ce' },
+  salao_final: { dark: '#1c1a17', light: '#d6d2c8' },
+  sagrario: { dark: '#181614', light: '#cecac0' },
+  cemiterio: { dark: '#13150f', light: '#c6d0ba' },
+  abismo: { dark: '#080a10', light: '#b8a0ec' },
+  serra: { dark: '#141117', light: '#d0cce0' },
+  floresta: { dark: '#1d160f', light: '#dee8d6' },
+  cabana: { dark: '#1a120a', light: '#ecdcc4' },
+};
+const SECRET_HINT_RANGE = 56;
+
+function drawSecretHints(c, st, t) {
+  const room = st.room;
+  if (!room || room.secretRevealed) return;
+  const style = SECRET_HINT_STYLE[room.id];
+  if (!style) return;
+  const pass = room.id === 'escadaria' ? { side: 'east' } : SECRET_PASSAGES[room.id];
+  if (!pass) return;
+
+  const wallX = pass.side === 'east' ? INNER.r : pass.side === 'west' ? INNER.x : DOOR_CX;
+  const wallY = pass.side === 'north' ? INNER.y : pass.side === 'south' ? INNER.b : DOOR_CY;
+  const p = st.player;
+  const d = dist(p.x, p.y, wallX, wallY);
+  if (d > SECRET_HINT_RANGE) return;
+
+  // Some por completo ao se afastar; fica bem apagada mesmo de perto.
+  const near = 1 - d / SECRET_HINT_RANGE;
+  let a = 0.06 + near * near * 0.26;
+  a *= 0.92 + Math.sin(t * 2.7 + wallX * 0.13) * 0.08;
+  if (room.dark) a *= 0.7;
+
+  c.save();
+  c.globalAlpha = Math.max(0, Math.min(1, a));
+  if (pass.side === 'east') drawCrackEast(c, INNER.r, DOOR_CY, style.dark, style.light);
+  else if (pass.side === 'west') drawCrackWest(c, INNER.x, DOOR_CY, style.dark, style.light);
+  else if (pass.side === 'north') drawCrackNorth(c, DOOR_CX, INNER.y, style.dark, style.light);
+  else drawCrackSouth(c, DOOR_CX, INNER.b, style.dark, style.light);
+  c.restore();
+}
+
 function drawCrackEast(c, x, cy, dark, light) {
   c.lineWidth = 2;
   c.strokeStyle = dark;
@@ -2782,6 +2789,96 @@ function drawItemIcon(c, type, x, y, s = 1, t = 0) {
     px(c, -4, 2, 8, 2, '#4870ad');
     px(c, -2, 4, 4, 2, '#375d93');
     px(c, -1, -3, 2, 7, '#dfe8ff');
+  } else if (type === 'mc_sword') {
+    px(c, 0, -12, 3, 14, '#3fa84f');
+    px(c, 1, -12, 1, 14, '#8ff09a');
+    px(c, 0, -14, 2, 2, '#dfffe2');
+    px(c, -4, 2, 11, 2, '#8a6a20');
+    px(c, -1, 4, 3, 7, '#6a4628');
+    px(c, -2, 10, 5, 2, '#5adf6a');
+  } else if (type === 'rbiana_burger') {
+    px(c, -6, -7, 12, 2, '#f0c070');
+    px(c, -6, -5, 12, 2, '#e0a04a');
+    px(c, -6, -3, 12, 2, '#f2d94a');
+    px(c, -7, -1, 14, 3, '#6a3a22');
+    px(c, -6, 2, 12, 2, '#5adf6a');
+    px(c, -5, 4, 10, 3, '#e0a04a');
+    px(c, -4, 6, 8, 1, '#c07a32');
+    px(c, -4, -6, 1, 1, '#fff6d0');
+    px(c, 2, -6, 1, 1, '#fff6d0');
+    px(c, -3, -2, 1, 1, '#ffe9a3');
+  } else if (type === 'richard_paper') {
+    px(c, -6, -8, 12, 15, '#e8e0cc');
+    px(c, -5, -7, 10, 13, '#fff6e0');
+    px(c, -6, -8, 12, 1, '#c9c0a0');
+    for (let i = 0; i < 4; i++) px(c, -4, -5 + i * 3, 7, 1, '#8a8270');
+    px(c, 2, 2, 4, 4, '#c94a3f');
+    px(c, 3, 3, 2, 2, '#e6c26a');
+  } else if (type === 'lito_plane') {
+    px(c, -8, -4, 13, 2, '#f4f1e6');
+    px(c, 4, -2, 3, 2, '#d6d0c0');
+    px(c, -6, -1, 9, 2, '#e8e2cc');
+    px(c, -4, 1, 6, 2, '#d6d0c0');
+    px(c, -8, -4, 2, 5, '#c9c0a0');
+    px(c, 1, -3, 1, 4, '#b8b0a0');
+  } else if (type === 'marx_book') {
+    px(c, -6, -8, 12, 16, '#7a2a24');
+    px(c, -5, -7, 10, 14, '#c94a3f');
+    px(c, -4, -6, 7, 12, '#e8dcc0');
+    px(c, 3, -6, 2, 12, '#a83a30');
+    px(c, -1, -2, 3, 4, '#e6c26a');
+    px(c, 0, -1, 1, 2, '#8a6a20');
+  } else if (type === 'senna_wheel') {
+    px(c, -6, -7, 12, 3, '#22242a');
+    px(c, -6, 4, 12, 3, '#22242a');
+    px(c, -7, -5, 3, 10, '#22242a');
+    px(c, 4, -5, 3, 10, '#22242a');
+    px(c, -2, -2, 4, 4, '#e6bb4f');
+    px(c, 0, -1, 2, 2, '#8a6a20');
+    px(c, -1, -6, 2, 2, '#e6bb4f');
+    px(c, -1, 4, 2, 2, '#e6bb4f');
+  } else if (type === 'trotsky_pick') {
+    px(c, -1, -10, 2, 11, '#8a9098');
+    px(c, -6, -10, 12, 2, '#cdd3dc');
+    px(c, -8, -10, 3, 5, '#b8c0c8');
+    px(c, 5, -10, 3, 5, '#b8c0c8');
+    px(c, -1, 0, 3, 8, '#6a4628');
+    px(c, -3, 7, 6, 2, '#d8503f');
+  } else if (type === 'deltarune_heart') {
+    px(c, -5, -4, 4, 3, '#b88af0');
+    px(c, 1, -4, 4, 3, '#b88af0');
+    px(c, -5, -2, 10, 3, '#b88af0');
+    px(c, -4, 1, 8, 2, '#8a5ad8');
+    px(c, -2, 3, 4, 2, '#6a3fb8');
+    px(c, 0, 5, 1, 1, '#6a3fb8');
+    px(c, -1, -1, 2, 2, '#7fe6e6');
+  } else if (type === 'verity_ball') {
+    pixelCircle(c, 0, 0, 6, '#f2d94a');
+    px(c, -3, -2, 2, 2, '#3a2a10');
+    px(c, 1, -2, 2, 2, '#3a2a10');
+    px(c, -2, 1, 4, 1, '#3a2a10');
+    px(c, -3, 2, 1, 1, '#3a2a10');
+    px(c, 2, 2, 1, 1, '#3a2a10');
+    px(c, -2, -4, 4, 1, '#fff0a0');
+  } else if (type === 'roblox_block') {
+    px(c, -6, -6, 12, 12, '#5adf6a');
+    px(c, -6, -6, 12, 1, '#8ff09a');
+    px(c, -4, -8, 2, 3, '#8ff09a');
+    px(c, 2, -8, 2, 3, '#8ff09a');
+    px(c, -4, 3, 8, 2, '#3fa84f');
+    px(c, -4, -4, 3, 3, '#7fe6a0');
+  } else if (type === 'undertale_star') {
+    px(c, -1, -9, 3, 18, '#ffe66a');
+    px(c, -9, -1, 18, 3, '#ffe66a');
+    px(c, -6, -6, 12, 12, '#ffe66a');
+    px(c, -3, -3, 6, 6, '#fff6d0');
+    px(c, 0, -2, 1, 4, '#ffffff');
+  } else if (type === 'ultrakill_coin') {
+    px(c, -5, -7, 10, 14, '#c94a3f');
+    px(c, -3, -6, 6, 12, '#e6bb4f');
+    px(c, -1, -8, 2, 16, '#ff8a2a');
+    px(c, -1, -2, 2, 5, '#fff6d0');
+    px(c, -2, 3, 4, 2, '#c94a3f');
   }
   c.restore();
 }
@@ -2933,28 +3030,31 @@ function drawPlayer(c, game, t) {
     const prog = 1 - p.swing / dur;
     const heavy = p.swingKind === 'heavy';
     const reach = (p.swingReach || (heavy ? 40 : 32)) * s;
+    const swingColor = p.swingColor || '#fff6d0';
     c.save();
     c.translate(px0, py0 - 22 * s);
     c.rotate(ang - (heavy ? 1.35 : 0.9) + prog * (heavy ? 2.7 : 1.8));
     if (heavy) {
       c.globalAlpha = 0.35;
-      c.strokeStyle = '#ffb14a';
+      c.strokeStyle = swingColor;
       c.lineWidth = Math.max(1, 9 * s);
       c.beginPath();
       c.arc(0, 0, reach - 6 * s, -0.85, 0.85);
       c.stroke();
       c.globalAlpha = 1;
     }
-    c.strokeStyle = heavy ? '#fff0b0' : 'rgba(255,246,208,0.9)';
+    c.strokeStyle = heavy ? '#fff0b0' : swingColor;
     c.lineWidth = Math.max(1, (heavy ? 4 : 3) * s);
     c.beginPath();
     c.arc(0, 0, reach * 0.65, heavy ? -0.85 : -0.55, heavy ? 0.85 : 0.55);
     c.stroke();
-    c.strokeStyle = heavy ? 'rgba(255,138,42,0.8)' : 'rgba(230,187,79,0.55)';
+    c.globalAlpha = 0.55;
+    c.strokeStyle = swingColor;
     c.lineWidth = Math.max(1, (heavy ? 7 : 5) * s);
     c.beginPath();
     c.arc(0, 0, reach * 0.8, heavy ? -0.55 : -0.35, heavy ? 0.55 : 0.35);
     c.stroke();
+    c.globalAlpha = 1;
     c.restore();
   }
 
@@ -3508,13 +3608,13 @@ function drawHUD(c, game, t) {
   drawText(c, 'MÃOS', 66, 6, { scale: 1, color: '#6f7a8a' });
   if (game.held) {
     drawItemIcon(c, game.held.type, 70, 19, 0.6, t);
-    drawText(c, game.held.label, 80, 15, { scale: 1, color: C.goldLight });
+    drawText(c, game.held.short || game.held.label, 80, 15, { scale: 1, color: C.goldLight });
   } else {
     drawText(c, 'vazias', 66, 15, { scale: 1, color: '#4d5666' });
   }
 
-  // recarga dos golpes de espada
-  if (game.held && game.held.type === 'sword') {
+  // recarga dos golpes da arma equipada
+  if (game.held && isWeapon(game.held.type)) {
     drawCooldownBar(c, 124, 4, 32, 'LEVE', p.swingCd || 0, p.swingCdMax || 0.7, C.green);
     drawCooldownBar(c, 124, 15, 32, 'FORTE', p.heavyCd || 0, p.heavyCdMax || 3, '#ffb14a');
   }

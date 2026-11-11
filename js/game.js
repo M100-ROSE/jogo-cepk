@@ -37,6 +37,138 @@ const ATTACK = {
   heavy: { dur: 0.45, reach: 40, arcDot: 0.3, dmg: 3, cd: 3.0, knock: 26, shake: 6 },
 };
 
+/* Armas secretas invocadas por comando: cada homenagem ganha a sua, com
+   estatísticas próprias e, algumas, um efeito especial ao acertar.
+   O tipo do item é a chave aqui (ex.: held.type === 'mc_sword'). */
+const WEAPON_DEFS = {
+  sword: {
+    label: 'Espada',
+    short: 'Espada',
+    color: '#fff6d0',
+    light: ATTACK.light,
+    heavy: ATTACK.heavy,
+  },
+  lito_plane: {
+    label: 'Avião de Papel',
+    short: 'Avião',
+    color: '#e8e2cc',
+    light: { dur: 0.16, reach: 38, arcDot: 0.6, dmg: 1, cd: 0.3, knock: 4, shake: 2 },
+    heavy: { dur: 0.34, reach: 46, arcDot: 0.35, dmg: 2, cd: 1.4, knock: 12, shake: 4 },
+  },
+  marx_book: {
+    label: 'Manifesto',
+    short: 'Marx',
+    color: '#e6c26a',
+    light: { dur: 0.26, reach: 34, arcDot: 0.5, dmg: 2, cd: 1.0, knock: 8, shake: 4 },
+    heavy: { dur: 0.5, reach: 44, arcDot: 0.3, dmg: 4, cd: 3.2, knock: 24, shake: 7 },
+  },
+  senna_wheel: {
+    label: 'Volante de Corrida',
+    short: 'Volante',
+    color: '#e6bb4f',
+    effect: 'speed',
+    effectAmount: 1.8,
+    light: { dur: 0.18, reach: 32, arcDot: 0.55, dmg: 1, cd: 0.4, knock: 6, shake: 2 },
+    heavy: { dur: 0.4, reach: 38, arcDot: 0.3, dmg: 3, cd: 2.0, knock: 20, shake: 6 },
+  },
+  trotsky_pick: {
+    label: 'Picador de Gelo',
+    short: 'Picador',
+    color: '#d8503f',
+    light: { dur: 0.22, reach: 34, arcDot: 0.55, dmg: 2, cd: 0.75, knock: 10, shake: 3 },
+    heavy: { dur: 0.46, reach: 42, arcDot: 0.3, dmg: 5, cd: 3.0, knock: 30, shake: 7 },
+  },
+  deltarune_heart: {
+    label: 'Coração Sombrio',
+    short: 'Coração',
+    color: '#b88af0',
+    effect: 'heal',
+    effectAmount: 0.35,
+    light: { dur: 0.2, reach: 34, arcDot: 0.55, dmg: 1, cd: 0.55, knock: 7, shake: 3 },
+    heavy: { dur: 0.44, reach: 42, arcDot: 0.3, dmg: 3, cd: 2.5, knock: 24, shake: 6 },
+  },
+  mc_sword: {
+    label: 'Espada de Diamante',
+    short: 'Diam.',
+    color: '#5adf6a',
+    light: { dur: 0.2, reach: 36, arcDot: 0.55, dmg: 2, cd: 0.55, knock: 9, shake: 3 },
+    heavy: { dur: 0.44, reach: 44, arcDot: 0.3, dmg: 4, cd: 2.5, knock: 28, shake: 7 },
+  },
+  verity_ball: {
+    label: 'Bola Verity',
+    short: 'Verity',
+    color: '#f2d94a',
+    effect: 'stun',
+    effectAmount: 0.35,
+    light: { dur: 0.18, reach: 32, arcDot: 0.6, dmg: 1, cd: 0.4, knock: 12, shake: 3 },
+    heavy: { dur: 0.4, reach: 38, arcDot: 0.32, dmg: 2, cd: 1.8, knock: 26, shake: 6 },
+  },
+  roblox_block: {
+    label: 'Bloco de Checkpoint',
+    short: 'Bloco',
+    color: '#5adf6a',
+    effect: 'shield',
+    light: { dur: 0.24, reach: 32, arcDot: 0.5, dmg: 1, cd: 0.7, knock: 9, shake: 3 },
+    heavy: { dur: 0.5, reach: 40, arcDot: 0.3, dmg: 3, cd: 2.4, knock: 26, shake: 7 },
+  },
+  rbiana_burger: {
+    label: 'Hambúrguer da Rbiana',
+    short: 'Burger',
+    color: '#e86aa0',
+    effect: 'heal',
+    effectAmount: 0.25,
+    light: { dur: 0.2, reach: 32, arcDot: 0.55, dmg: 1, cd: 0.5, knock: 7, shake: 3 },
+    heavy: { dur: 0.42, reach: 38, arcDot: 0.3, dmg: 2, cd: 2.0, knock: 22, shake: 6 },
+  },
+  undertale_star: {
+    label: 'Estrela da Determinação',
+    short: 'Estrela',
+    color: '#ffe66a',
+    effect: 'invuln',
+    effectAmount: 0.5,
+    light: { dur: 0.18, reach: 34, arcDot: 0.6, dmg: 1, cd: 0.45, knock: 8, shake: 3 },
+    heavy: { dur: 0.4, reach: 42, arcDot: 0.3, dmg: 2, cd: 1.8, knock: 24, shake: 6 },
+  },
+  ultrakill_coin: {
+    label: 'Moeda de Aço',
+    short: 'Moeda',
+    color: '#ff8a2a',
+    light: { dur: 0.26, reach: 34, arcDot: 0.5, dmg: 3, cd: 0.9, knock: 12, shake: 5 },
+    heavy: { dur: 0.55, reach: 46, arcDot: 0.3, dmg: 6, cd: 3.5, knock: 34, shake: 8 },
+  },
+  richard_paper: {
+    label: 'Papel de Regimento',
+    short: 'Papel',
+    color: '#e8e0cc',
+    effect: 'stun',
+    effectAmount: 0.5,
+    light: { dur: 0.2, reach: 36, arcDot: 0.6, dmg: 1, cd: 0.5, knock: 8, shake: 3 },
+    heavy: { dur: 0.46, reach: 44, arcDot: 0.3, dmg: 2, cd: 2.0, knock: 22, shake: 6 },
+  },
+};
+
+function isWeapon(type) {
+  return Object.prototype.hasOwnProperty.call(WEAPON_DEFS, type);
+}
+
+/* Comandos digitados no teclado (`/nome`) ou no modal de código (mobile).
+   Cada um invoca a arma secreta da homenagem correspondente. */
+const SECRET_COMMANDS = [
+  { code: '/AVIAO', weapon: 'lito_plane' },
+  { code: '/MANIFESTO', weapon: 'marx_book' },
+  { code: '/VOLANTE', weapon: 'senna_wheel' },
+  { code: '/PICADOR', weapon: 'trotsky_pick' },
+  { code: '/CORACAO', weapon: 'deltarune_heart' },
+  { code: '/DIAMANTE', weapon: 'mc_sword' },
+  { code: '/VERITY', weapon: 'verity_ball' },
+  { code: '/CHECKPOINT', weapon: 'roblox_block' },
+  { code: '/HAMBURGUER', weapon: 'rbiana_burger' },
+  { code: '/ESTRELA', weapon: 'undertale_star' },
+  { code: '/MOEDA', weapon: 'ultrakill_coin' },
+  { code: '/REGIMENTO', weapon: 'richard_paper' },
+];
+const COMMAND_TIMEOUT_MS = 4000;
+
 /* Defesa e rolamento */
 const GUARD = {
   speedMul: 0.47,      // ~47% da velocidade andando
@@ -414,7 +546,20 @@ function updateObjective(st) {
 /* ------------------------------------------------------------------ */
 
 const keys = {};
-const input = { up: false, down: false, left: false, right: false, action: false, touchGuard: false };
+const input = {
+  up: false,
+  down: false,
+  left: false,
+  right: false,
+  moveX: 0,
+  moveY: 0,
+  touchX: 0,
+  touchY: 0,
+  action: false,
+  touchGuard: false,
+};
+/* Zona morta do joystick analógico: abaixo disso o toque não move o lobo. */
+const JOY_DEADZONE = 0.16;
 
 /* Código secreto: 0717 ativa/desativa a playlist alternativa. O buffer
    expira após 2s. O buffer é alimentado antes do seletor de dificuldade
@@ -424,6 +569,8 @@ const SECRET_TIMEOUT_MS = 2000;
 let secretBuffer = '';
 let secretLastAt = 0;
 let lastTrackToastAt = 0;
+let commandBuffer = '';
+let commandLastAt = 0;
 
 function feedSecretDigit(digit) {
   const now = Date.now();
@@ -474,6 +621,100 @@ function triggerSecret(st) {
   }
 }
 
+function normalizeSecretCommand(raw) {
+  let code = String(raw || '')
+    .trim()
+    .toUpperCase()
+    .replace(/\s+/g, '');
+  // No modal de código aceita o comando sem a barra inicial.
+  if (code && code.charAt(0) !== '/') code = '/' + code;
+  return code;
+}
+
+function matchSecretCommand(raw) {
+  const code = normalizeSecretCommand(raw);
+  return SECRET_COMMANDS.find((entry) => entry.code === code) || null;
+}
+
+/* Invoca a arma secreta direto para a mão do lobo. Se ele já carrega algo,
+   o item antigo é largado no chão (sem perder progresso de chave/cálice). */
+function grantSecretWeapon(st, weaponKey) {
+  if (!st || st.mode !== 'play' || st.transition) return false;
+  const def = WEAPON_DEFS[weaponKey];
+  if (!def) return false;
+
+  if (st.held) dropItem(st);
+
+  const p = st.player;
+  const item = {
+    id: 'secret_' + weaponKey + '_' + Date.now(),
+    type: weaponKey,
+    label: def.label,
+    short: def.short || def.label,
+    room: st.room.id,
+    x: p.x,
+    y: p.y - 6,
+    taken: true,
+    picked: true,
+    holder: 'player',
+    bob: Math.random() * Math.PI * 2,
+  };
+
+  st.held = item;
+  st.pickupCd = 0.6;
+  p.swingCd = 0;
+  p.heavyCd = 0;
+  p.swing = 0;
+
+  Sound.sfx('pickup');
+  spawnParticles(st, p.x, p.y - 18, def.color, 16, { speed: 50, life: 0.7 });
+  spawnParticles(st, p.x, p.y - 18, '#fff6d0', 8, { speed: 34, life: 0.55 });
+  toast(st, 'Arma secreta: ' + def.label + '!', 3);
+  return true;
+}
+
+function executeSecretCommand(st, raw) {
+  const entry = matchSecretCommand(raw);
+  if (!entry) return false;
+  return grantSecretWeapon(st, entry.weapon);
+}
+
+/* Digitação do comando (só durante o jogo). Retorna true quando a tecla foi
+   consumida pelo comando, para não mover/abrir mapa/alternar som sem querer. */
+function handleSecretCommandKey(e) {
+  if (!gameState || gameState.mode !== 'play' || e.repeat) return false;
+  if (e.ctrlKey || e.metaKey || e.altKey) return false;
+
+  let ch = '';
+  if (e.key === '/' || e.code === 'Slash' || e.code === 'NumpadDivide') ch = '/';
+  else if (e.key && e.key.length === 1 && /[a-zA-Z]/.test(e.key)) ch = e.key.toUpperCase();
+  if (!ch) return false;
+
+  const now = Date.now();
+  if (now - commandLastAt > COMMAND_TIMEOUT_MS) commandBuffer = '';
+  commandLastAt = now;
+
+  const candidate = commandBuffer + ch;
+  const matches = SECRET_COMMANDS.filter((entry) => entry.code.indexOf(candidate) === 0);
+
+  if (!matches.length) {
+    // Comando errado: descarta o buffer e deixa a tecla seguir o fluxo normal.
+    commandBuffer = ch === '/' ? '/' : '';
+    return ch === '/';
+  }
+
+  commandBuffer = candidate;
+  const exact = matches.find((entry) => entry.code === candidate);
+  if (exact) {
+    commandBuffer = '';
+    if (!grantSecretWeapon(gameState, exact.weapon)) {
+      toast(gameState, 'Não foi possível invocar agora.', 1.8);
+    }
+    return true;
+  }
+  return true;
+}
+
 function startGame() {
   Sound.init();
   if (Sound.musicMode === 'local' || Sound.musicMode === 'youtube') Sound.resumeMusic();
@@ -494,6 +735,23 @@ function toast(st, text, dur = 2.4) {
 
 function handleKeyDown(e) {
   const code = e.code;
+
+  const codeModal = document.getElementById('code-modal');
+  if (codeModal && codeModal.classList.contains('open')) {
+    if (code === 'Escape') {
+      e.preventDefault();
+      closeCodeModal(false);
+    }
+    return;
+  }
+
+  // Comandos de armas secretas (ex.: /diamante) são consumidos antes das
+  // teclas de jogo para não mover o lobo nem abrir o mapa sem querer.
+  if (handleSecretCommandKey(e)) {
+    e.preventDefault();
+    return;
+  }
+
   if (
     ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space', 'KeyF', 'KeyW', 'KeyA', 'KeyS', 'KeyD', 'KeyC'].includes(code)
   ) {
@@ -568,10 +826,27 @@ function handleKeyUp(e) {
 }
 
 function readInput() {
-  input.up = !!(keys.ArrowUp || keys.KeyW || input.touchUp);
-  input.down = !!(keys.ArrowDown || keys.KeyS || input.touchDown);
-  input.left = !!(keys.ArrowLeft || keys.KeyA || input.touchLeft);
-  input.right = !!(keys.ArrowRight || keys.KeyD || input.touchRight);
+  const kx =
+    (keys.ArrowRight || keys.KeyD ? 1 : 0) - (keys.ArrowLeft || keys.KeyA ? 1 : 0);
+  const ky =
+    (keys.ArrowDown || keys.KeyS ? 1 : 0) - (keys.ArrowUp || keys.KeyW ? 1 : 0);
+
+  // Soma teclado + joystick e limita o vetor a 1 (diagonal não fica mais rápida).
+  let mx = kx + input.touchX;
+  let my = ky + input.touchY;
+  const mag = Math.hypot(mx, my);
+  if (mag > 1) {
+    mx /= mag;
+    my /= mag;
+  }
+  input.moveX = mx;
+  input.moveY = my;
+
+  // Compatibilidade com o restante do jogo, que consulta direções digitais.
+  input.up = my < -JOY_DEADZONE;
+  input.down = my > JOY_DEADZONE;
+  input.left = mx < -JOY_DEADZONE;
+  input.right = mx > JOY_DEADZONE;
 }
 
 window.addEventListener('keydown', handleKeyDown);
@@ -581,13 +856,21 @@ window.addEventListener('keyup', handleKeyUp);
    (Shift/DEF) e o movimento ficariam presos ao voltar para o jogo. */
 function releaseAllInput() {
   for (const k in keys) keys[k] = false;
-  input.touchUp = false;
-  input.touchDown = false;
-  input.touchLeft = false;
-  input.touchRight = false;
+  input.moveX = 0;
+  input.moveY = 0;
+  input.touchX = 0;
+  input.touchY = 0;
+  input.up = false;
+  input.down = false;
+  input.left = false;
+  input.right = false;
   input.touchGuard = false;
   const defBtn = document.getElementById('btn-def');
   if (defBtn) defBtn.classList.remove('active');
+  const joy = document.getElementById('joystick');
+  if (joy) joy.classList.remove('active');
+  const knob = document.getElementById('joystick-knob');
+  if (knob) knob.style.transform = 'translate(0, 0)';
   if (gameState) clearGuard(gameState.player);
 }
 window.addEventListener('blur', releaseAllInput);
@@ -595,49 +878,203 @@ document.addEventListener('visibilitychange', () => {
   if (document.hidden) releaseAllInput();
 });
 
-/* Toque */
-function setupTouch() {
-  const dpad = document.querySelectorAll('[data-dir]');
+/* Joystick analógico: a manopla acompanha o dedo e o vetor resultante move
+   o lobo em qualquer ângulo, com intensidade proporcional ao deslocamento. */
+function setupJoystick() {
+  const base = document.getElementById('joystick');
+  const knob = document.getElementById('joystick-knob');
+  if (!base || !knob) return;
+
+  let pointerId = null;
+  let downAt = 0;
   let lastTapDir = '';
   let lastTapAt = 0;
 
-  for (const btn of dpad) {
-    const dir = btn.getAttribute('data-dir');
-    const set = (on) => {
-      if (dir === 'up') input.touchUp = on;
-      if (dir === 'down') input.touchDown = on;
-      if (dir === 'left') input.touchLeft = on;
-      if (dir === 'right') input.touchRight = on;
-      btn.classList.toggle('active', on);
-    };
-    btn.addEventListener('pointerdown', (e) => {
-      e.preventDefault();
-      Sound.init();
-      set(true);
+  const reset = () => {
+    input.touchX = 0;
+    input.touchY = 0;
+    knob.style.transform = 'translate(0, 0)';
+    base.classList.remove('active');
+  };
 
-      // duplo-toque na mesma direção (<=280ms) = rolamento
-      if (gameState && gameState.mode === 'play') {
-        const now = Date.now();
-        if (lastTapDir === dir && now - lastTapAt <= 280) {
-          if (startRoll(gameState, dir)) {
-            lastTapDir = '';
-            lastTapAt = 0;
-          }
-        } else {
-          lastTapDir = dir;
-          lastTapAt = now;
-        }
+  const apply = (clientX, clientY) => {
+    const rect = base.getBoundingClientRect();
+    const cx = rect.left + rect.width / 2;
+    const cy = rect.top + rect.height / 2;
+    const max = rect.width * 0.32;
+
+    let dx = clientX - cx;
+    let dy = clientY - cy;
+    const len = Math.hypot(dx, dy);
+    if (len > max && len > 0) {
+      dx = (dx / len) * max;
+      dy = (dy / len) * max;
+    }
+
+    const nx = dx / max;
+    const ny = dy / max;
+    const mag = Math.hypot(nx, ny);
+    if (mag <= JOY_DEADZONE) {
+      input.touchX = 0;
+      input.touchY = 0;
+    } else {
+      // Reescala a zona morta para o controle começar suave, sem salto.
+      const scaled = (mag - JOY_DEADZONE) / (1 - JOY_DEADZONE);
+      input.touchX = (nx / mag) * scaled;
+      input.touchY = (ny / mag) * scaled;
+    }
+
+    knob.style.transform = `translate(${dx}px, ${dy}px)`;
+  };
+
+  base.addEventListener('pointerdown', (e) => {
+    if (pointerId !== null) return;
+    e.preventDefault();
+    Sound.init();
+    pointerId = e.pointerId;
+    downAt = Date.now();
+    base.classList.add('active');
+    base.setPointerCapture(e.pointerId);
+    apply(e.clientX, e.clientY);
+  });
+
+  base.addEventListener('pointermove', (e) => {
+    if (e.pointerId !== pointerId) return;
+    e.preventDefault();
+    apply(e.clientX, e.clientY);
+  });
+
+  const end = (e) => {
+    if (e.pointerId !== pointerId) return;
+    e.preventDefault();
+
+    // Dois toques rápidos na mesma direção continuam valendo como rolamento.
+    const dx = input.touchX;
+    const dy = input.touchY;
+    const now = Date.now();
+    if (
+      Math.hypot(dx, dy) > 0.55 &&
+      now - downAt <= 260 &&
+      gameState &&
+      gameState.mode === 'play'
+    ) {
+      const dir =
+        Math.abs(dx) > Math.abs(dy)
+          ? dx > 0
+            ? 'right'
+            : 'left'
+          : dy > 0
+            ? 'down'
+            : 'up';
+      if (lastTapDir === dir && now - lastTapAt <= 300) {
+        startRoll(gameState, dir);
+        lastTapDir = '';
+        lastTapAt = 0;
+      } else {
+        lastTapDir = dir;
+        lastTapAt = now;
       }
+    }
 
-      btn.setPointerCapture(e.pointerId);
-    });
-    const off = (e) => {
+    pointerId = null;
+    reset();
+  };
+
+  base.addEventListener('pointerup', end);
+  base.addEventListener('pointercancel', end);
+  base.addEventListener('lostpointercapture', () => {
+    if (pointerId !== null) {
+      pointerId = null;
+      reset();
+    }
+  });
+}
+
+/* Modal de código (toque): abre em pausa, aplica o comando e retoma o jogo. */
+let codeModalResume = false;
+
+function openCodeModal() {
+  if (!gameState || gameState.mode !== 'play') return;
+  const modal = document.getElementById('code-modal');
+  const input = document.getElementById('code-input');
+  const error = document.getElementById('code-error');
+  if (!modal || !input) return;
+
+  codeModalResume = true;
+  gameState.mode = 'pause';
+  clearGuard(gameState.player);
+  if (typeof Sound !== 'undefined' && Sound.pauseMusic) Sound.pauseMusic();
+
+  if (error) error.textContent = '';
+  input.value = '/';
+  modal.classList.add('open');
+  modal.setAttribute('aria-hidden', 'false');
+  input.focus();
+  input.setSelectionRange(1, 1);
+}
+
+function closeCodeModal(apply) {
+  const modal = document.getElementById('code-modal');
+  const input = document.getElementById('code-input');
+  const error = document.getElementById('code-error');
+  if (!modal || !modal.classList.contains('open')) return;
+
+  if (apply) {
+    if (!gameState || !input) return;
+    const prevMode = gameState.mode;
+    gameState.mode = 'play';
+    if (!executeSecretCommand(gameState, input.value)) {
+      gameState.mode = prevMode;
+      if (error) error.textContent = 'Código inválido. Confira o comando.';
+      input.focus();
+      return;
+    }
+  }
+
+  modal.classList.remove('open');
+  modal.setAttribute('aria-hidden', 'true');
+  if (input) input.blur();
+
+  if (gameState && codeModalResume) {
+    gameState.mode = 'play';
+    if (typeof Sound !== 'undefined' && Sound.resumeMusic) Sound.resumeMusic();
+  }
+  codeModalResume = false;
+}
+
+/* Toque */
+function setupTouch() {
+  setupJoystick();
+
+  const codeBtn = document.getElementById('btn-code');
+  if (codeBtn) {
+    codeBtn.addEventListener('pointerdown', (e) => {
       e.preventDefault();
-      set(false);
-    };
-    btn.addEventListener('pointerup', off);
-    btn.addEventListener('pointercancel', off);
-    btn.addEventListener('lostpointercapture', () => set(false));
+      openCodeModal();
+    });
+  }
+
+  const codeForm = document.getElementById('code-form');
+  if (codeForm) {
+    codeForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      closeCodeModal(true);
+    });
+  }
+
+  const codeCancel = document.getElementById('code-cancel');
+  if (codeCancel) {
+    codeCancel.addEventListener('pointerdown', (e) => {
+      e.preventDefault();
+      closeCodeModal(false);
+    });
+  }
+
+  const codeModal = document.getElementById('code-modal');
+  if (codeModal) {
+    codeModal.addEventListener('pointerdown', (e) => {
+      if (e.target === codeModal) closeCodeModal(false);
+    });
   }
 
   const actionBtn = document.getElementById('btn-action');
@@ -1179,7 +1616,7 @@ function doAction(st) {
     return;
   }
 
-  if (st.held && st.held.type === 'sword') {
+  if (st.held && isWeapon(st.held.type)) {
     tryAttack(st, 'light');
     return;
   }
@@ -1187,13 +1624,14 @@ function doAction(st) {
   if (st.held) dropItem(st);
 }
 
-/* Inicia um golpe de espada. kind: 'light' | 'heavy' */
+/* Inicia um golpe de arma. kind: 'light' | 'heavy' */
 function tryAttack(st, kind) {
   if (!st || st.transition) return;
-  if (!st.held || st.held.type !== 'sword') return;
+  const weapon = st.held ? WEAPON_DEFS[st.held.type] : null;
+  if (!weapon) return;
   const p = st.player;
   if (p.guarding || p.rollT > 0) return; // não ataca defendendo ou rolando
-  const def = ATTACK[kind] || ATTACK.light;
+  const def = weapon[kind] || weapon.light;
   if (p.swing > 0) return; // não cancela um golpe em andamento
 
   const cd = kind === 'heavy' ? p.heavyCd : p.swingCd;
@@ -1203,6 +1641,9 @@ function tryAttack(st, kind) {
   p.swingDur = def.dur;
   p.swingKind = kind;
   p.swingReach = def.reach;
+  p.swingWeapon = weapon;
+  p.swingDef = def;
+  p.swingColor = weapon.color || '#fff6d0';
   st.swingId = (st.swingId || 0) + 1;
 
   if (kind === 'heavy') {
@@ -1222,7 +1663,7 @@ function tryAttack(st, kind) {
     st,
     p.x + Math.cos(ang) * reach,
     p.y - 20 + Math.sin(ang) * reach,
-    '#fff6d0',
+    p.swingColor,
     kind === 'heavy' ? 6 : 3,
     { speed: kind === 'heavy' ? 65 : 40, life: kind === 'heavy' ? 0.4 : 0.25 }
   );
@@ -1425,11 +1866,12 @@ function movePlayer(st, dt) {
   const p = st.player;
   const room = st.room;
 
-  let ix = (input.right ? 1 : 0) - (input.left ? 1 : 0);
-  let iy = (input.down ? 1 : 0) - (input.up ? 1 : 0);
-  if (ix && iy) {
-    ix *= 0.7071;
-    iy *= 0.7071;
+  let ix = input.moveX;
+  let iy = input.moveY;
+  const inputLen = Math.hypot(ix, iy);
+  if (inputLen > 1) {
+    ix /= inputLen;
+    iy /= inputLen;
   }
 
   const boostMul = st.speedBoostT > 0 ? EASTER_EGGS.senna.boostMul : 1;
@@ -1602,12 +2044,18 @@ function updateEnemies(st, dt) {
     // ataque do jogador (um acerto por golpe em cada dragão)
     if (p.swing > 0 && e.alive && e.lastHitSwing !== st.swingId) {
       const kind = p.swingKind || 'light';
-      const def = ATTACK[kind] || ATTACK.light;
+      const weapon = p.swingWeapon || WEAPON_DEFS.sword;
+      const def = p.swingDef || weapon[kind] || weapon.light;
       if (playerCanHitDragon(st, e, def)) {
         e.lastHitSwing = st.swingId;
         // Fúria (Ultrakill): +1 de dano enquanto o impulso estiver ativo.
         const fury = st.powerBoostT > 0 ? 1 : 0;
-        hitDragon(st, e, def.dmg + fury, p.x, p.y - 18, { knock: def.knock, shake: def.shake });
+        hitDragon(st, e, def.dmg + fury, p.x, p.y - 18, {
+          knock: def.knock,
+          shake: def.shake,
+          color: weapon.color,
+        });
+        applyWeaponHitEffect(st, e, weapon, kind);
       }
     }
     if (!e.alive) continue;
@@ -1789,6 +2237,32 @@ function angleDiff(a, b) {
   return d;
 }
 
+/* Efeitos especiais das armas secretas ao acertar um dragão. */
+function applyWeaponHitEffect(st, e, weapon, kind) {
+  const p = st.player;
+  const amount = weapon.effectAmount || 1;
+
+  if (weapon.effect === 'heal') {
+    const healed = Math.min(st.maxHearts, st.hearts + amount);
+    if (healed > st.hearts + 0.001) {
+      st.hearts = healed;
+      spawnParticles(st, p.x, p.y - 18, weapon.color, 5, { speed: 22, life: 0.45 });
+    }
+  } else if (weapon.effect === 'speed') {
+    st.speedBoostT = Math.max(st.speedBoostT || 0, amount);
+  } else if (weapon.effect === 'shield') {
+    if (kind === 'heavy' && st.shield <= 0) {
+      st.shield = 1;
+      spawnParticles(st, p.x, p.y - 20, '#9fd0ff', 10, { speed: 36, life: 0.6 });
+    }
+  } else if (weapon.effect === 'invuln') {
+    p.invuln = Math.max(p.invuln || 0, amount);
+  } else if (weapon.effect === 'stun') {
+    e.stunT = Math.max(e.stunT || 0, amount);
+    spawnParticles(st, e.x, e.y - 24, weapon.color, 6, { speed: 26, life: 0.5 });
+  }
+}
+
 /* Aplica dano ao dragão, com knockback, flash e cancelamento de ataque */
 function hitDragon(st, e, dmg, fromX, fromY, opts = {}) {
   if (!e.alive) return;
@@ -1811,7 +2285,7 @@ function hitDragon(st, e, dmg, fromX, fromY, opts = {}) {
 
   st.shake = Math.max(st.shake, opts.shake || 3);
   Sound.sfx('hitDragon');
-  spawnParticles(st, e.x, e.y - 8, '#ffd24a', 5, { speed: 55, life: 0.35 });
+  spawnParticles(st, e.x, e.y - 8, opts.color || '#ffd24a', 5, { speed: 55, life: 0.35 });
   spawnParticles(st, e.x, e.y - 8, '#e05a4a', 4, { speed: 40, life: 0.3 });
 
   if (e.hp <= 0) killDragon(st, e);
@@ -2239,6 +2713,9 @@ function render(st, t) {
 
   drawRoomFX(ctx, st.room, t);
 
+  // pistas de passagem secreta só surgem de perto da parede certa
+  drawSecretHints(ctx, st, t);
+
   // camada ordenada por profundidade: objetos altos, itens, inimigos e jogador
   const scene = [];
   for (const d of st.room.decor) {
@@ -2410,5 +2887,7 @@ window.LOBO = {
     if (DIFFICULTY[value]) currentDifficulty = value;
   },
   start: startGame,
+  grant: (key) => grantSecretWeapon(gameState, key),
+  commands: SECRET_COMMANDS,
   world,
 };

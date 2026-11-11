@@ -27,10 +27,12 @@ Firefox). O jogo também funciona com controles de toque em celulares e tablets.
 | Pausar | `P` ou `Esc` |
 | Começar / reiniciar | `Enter` |
 
-No celular use o direcional na tela, `AÇÃO`, `GOLPE`, `DEF`, `Q` e `M`. O botão
-`AÇÃO` faz o golpe leve e interage; `GOLPE` desfere o golpe forte; `DEF` segura
-a guarda. Para rolar, dê **dois toques rápidos** (até 280 ms) na mesma direção
-do direcional.
+No celular use o **joystick analógico** na tela (arraste o dedo para qualquer
+direção; quanto mais longe do centro, mais rápido o lobo anda), além de `AÇÃO`,
+`GOLPE`, `DEF`, `Q`, `M` e `CÓD`. O botão `AÇÃO` faz o golpe leve e interage;
+`GOLPE` desfere o golpe forte; `DEF` segura a guarda; `CÓD` abre o campo de
+comando secreto. Para rolar, dê **dois toques rápidos** (até 260 ms cada) na
+mesma direção do joystick.
 
 No título, as teclas `1`, `2` e `3` escolhem a dificuldade (fácil/médio/difícil)
 imediatamente, sem precisar do `Enter`.
@@ -72,8 +74,12 @@ imediatamente, sem precisar do `Enter`.
   4. volta para a trilha original
 - A playlist local é opcional. Sem faixas configuradas, o código pula esse modo
   e avisa que ela está vazia.
-- **Salas secretas**: procure rachaduras suspeitas nas paredes e aproxime-se
-  delas para abrir a passagem.
+- **Salas secretas**: as rachaduras são quase invisíveis. Só aparecem quando
+  você chega bem perto da parede certa, e ficam ainda mais apagadas em salas
+  escuras — use a lanterna e investigue com AÇÃO/Espaço.
+  <details>
+  <summary>Localizações (spoiler)</summary>
+
   - **Cemitério Antigo**, parede oeste → **Arquivo de Trótski**: tábua escura,
     faixa vermelha com estrela dourada, trem blindado, estantes, busto e papéis
     sobre a mesa.
@@ -100,6 +106,32 @@ imediatamente, sem precisar do `Enter`.
   - **Escadaria do Castelo**, parede leste → **Santuário de Richard**.
   - Cada passagem só existe depois de revelada e precisa ser redescoberta em
     cada partida.
+  </details>
+- **Armas secretas por comando**: digite o comando durante o jogo (ou toque em
+  `CÓD` no celular) para invocar a arma daquela homenagem. A arma vai para as
+  mãos; se o lobo já carregar algo, o item antigo cai no chão. Cada arma tem
+  dano, alcance e recarga próprios, e algumas têm efeito ao acertar.
+  <details>
+  <summary>Comandos (spoiler)</summary>
+
+  - `/aviao` → **Avião de Papel** (Lito): golpes rápidos e de longo alcance.
+  - `/manifesto` → **Manifesto** (Marx): lento, pesado e de dano alto.
+  - `/volante` → **Volante de Corrida** (Senna): cada acerto dá um impulso de
+    velocidade.
+  - `/picador` → **Picador de Gelo** (Trótski): dano e empurrão altos.
+  - `/coracao` → **Coração Sombrio** (Deltarune): cura um pouco a cada acerto.
+  - `/diamante` → **Espada de Diamante** (Minecraft): dano alto.
+  - `/verity` → **Bola Verity**: quica e atordoa o dragão.
+  - `/checkpoint` → **Bloco de Checkpoint** (Roblox): o golpe forte concede um
+    escudo que bloqueia um golpe.
+  - `/hamburguer` → **Hambúrguer da Rbiana**: cura um pouco a cada acerto.
+  - `/estrela` → **Estrela da Determinação** (Undertale): dá invulnerabilidade
+    breve após acertar.
+  - `/moeda` → **Moeda de Aço** (Ultrakill): dano altíssimo e lento.
+  - `/regimento` → **Papel de Regimento** (Santuário de Richard): atordoa o
+    dragão por mais tempo.
+  - Os comandos não usam acentos (ex.: `/coracao`, `/hamburguer`).
+  </details>
 - **Objetos escondidos** (aproxime-se e use AÇÃO/Espaço):
   - No **Labirinto Profundo**, uma pequena **estrela de determinação**
     (homenagem original a Undertale) recupera 1 coração, uma vez por jornada.

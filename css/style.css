@@ -77,7 +77,7 @@ canvas#game {
   display: none;
   position: fixed;
   inset: auto 0 0 0;
-  padding: 14px 18px 18px;
+  padding: 14px 18px calc(18px + env(safe-area-inset-bottom));
   pointer-events: none;
   z-index: 20;
 }
@@ -88,16 +88,74 @@ body.touch #touch {
   align-items: flex-end;
 }
 
-.dpad {
+/* Joystick analógico: base redonda + manopla que segue o dedo */
+.joystick {
   position: relative;
-  width: 132px;
-  height: 132px;
+  width: 136px;
+  height: 136px;
   pointer-events: auto;
+  touch-action: none;
+  border-radius: 50%;
+  border: 2px solid rgba(150, 175, 205, 0.28);
+  background:
+    radial-gradient(
+      circle at 50% 50%,
+      rgba(30, 44, 60, 0.72) 0%,
+      rgba(10, 16, 24, 0.58) 64%,
+      rgba(10, 16, 24, 0.22) 72%,
+      rgba(10, 16, 24, 0.04) 100%
+    );
+  box-shadow:
+    inset 0 0 20px rgba(0, 0, 0, 0.55),
+    0 0 14px rgba(92, 191, 98, 0.08);
+  -webkit-tap-highlight-color: transparent;
 }
 
-.dpad button,
-.actions button {
+.joystick::before {
+  content: "";
   position: absolute;
+  inset: 22%;
+  border-radius: 50%;
+  border: 1px dashed rgba(150, 175, 205, 0.18);
+}
+
+.joystick-knob {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 58px;
+  height: 58px;
+  margin: -29px 0 0 -29px;
+  border-radius: 50%;
+  border: 1px solid rgba(150, 175, 205, 0.5);
+  background: radial-gradient(
+    circle at 38% 32%,
+    rgba(92, 191, 98, 0.45),
+    rgba(24, 44, 34, 0.92) 62%,
+    rgba(10, 16, 24, 0.96)
+  );
+  box-shadow:
+    0 3px 10px rgba(0, 0, 0, 0.65),
+    inset 0 1px 2px rgba(255, 255, 255, 0.16);
+  will-change: transform;
+  pointer-events: none;
+}
+
+.joystick.active {
+  border-color: rgba(92, 191, 98, 0.65);
+}
+
+.joystick.active .joystick-knob {
+  border-color: var(--green);
+  background: radial-gradient(
+    circle at 38% 32%,
+    rgba(130, 235, 140, 0.7),
+    rgba(42, 84, 54, 0.94) 62%,
+    rgba(10, 16, 24, 0.96)
+  );
+}
+
+.actions button {
   border: 1px solid rgba(150, 175, 205, 0.35);
   background: rgba(12, 18, 26, 0.62);
   color: #c9d2df;
@@ -110,30 +168,9 @@ body.touch #touch {
   backdrop-filter: blur(2px);
 }
 
-.dpad button.active,
 .actions button:active {
   background: rgba(92, 191, 98, 0.4);
   border-color: var(--green);
-}
-
-.dpad .up {
-  left: 45px;
-  top: 0;
-}
-
-.dpad .down {
-  left: 45px;
-  top: 90px;
-}
-
-.dpad .left {
-  left: 0;
-  top: 45px;
-}
-
-.dpad .right {
-  left: 90px;
-  top: 45px;
 }
 
 .actions {
@@ -188,34 +225,108 @@ body.touch #touch {
   opacity: 0.75;
 }
 
-/* Telas estreitas: com 5 botões, o grid 3x2 evita espremer o direcional.
+#btn-code {
+  opacity: 0.75;
+  font-size: 10px;
+}
+
+/* Modal de código secreto (mobile) */
+#code-modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(3, 5, 8, 0.78);
+}
+
+#code-modal.open {
+  display: flex;
+}
+
+#code-modal form {
+  width: min(340px, 92vw);
+  padding: 16px;
+  border: 1px solid rgba(230, 187, 79, 0.4);
+  border-radius: 8px;
+  background: rgba(10, 14, 20, 0.98);
+  box-shadow:
+    0 0 0 1px rgba(5, 7, 10, 0.9),
+    0 18px 40px rgba(0, 0, 0, 0.7);
+}
+
+#code-modal label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  color: #e6bb4f;
+}
+
+#code-input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid rgba(150, 175, 205, 0.4);
+  border-radius: 6px;
+  background: rgba(5, 7, 10, 0.95);
+  color: #dfe8ff;
+  font-size: 16px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+#code-input:focus {
+  outline: none;
+  border-color: var(--green);
+}
+
+#code-error {
+  min-height: 14px;
+  margin: 6px 0 0;
+  font-size: 11px;
+  color: #e07a6a;
+}
+
+.code-modal__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.code-modal__actions button {
+  padding: 8px 14px;
+  border: 1px solid rgba(150, 175, 205, 0.4);
+  border-radius: 6px;
+  background: rgba(12, 18, 26, 0.9);
+  color: #c9d2df;
+  font-size: 12px;
+  letter-spacing: 0.06em;
+}
+
+.code-modal__actions button[type="submit"] {
+  background: rgba(92, 191, 98, 0.28);
+  border-color: rgba(92, 191, 98, 0.7);
+  color: #dfffe2;
+}
+
+/* Telas estreitas: o grid 3x2 dos botões evita espremer o joystick.
    O limite cobre celulares de 431–520px, onde o flex ainda estouraria. */
 @media (max-width: 520px) {
   #touch {
-    padding: 10px 10px 14px;
+    padding: 10px 10px calc(14px + env(safe-area-inset-bottom));
   }
-  .dpad {
+  .joystick {
     flex: 0 0 auto;
     width: 124px;
     height: 124px;
   }
-  .dpad button {
-    width: 40px;
-    height: 40px;
-  }
-  .dpad .up,
-  .dpad .down {
-    left: 42px;
-  }
-  .dpad .down {
-    top: 84px;
-  }
-  .dpad .left,
-  .dpad .right {
-    top: 42px;
-  }
-  .dpad .right {
-    left: 84px;
+  .joystick-knob {
+    width: 52px;
+    height: 52px;
+    margin: -26px 0 0 -26px;
   }
   .actions {
     display: grid;
@@ -242,30 +353,16 @@ body.touch #touch {
 
 @media (max-width: 340px) {
   #touch {
-    padding: 8px 8px 12px;
+    padding: 8px 8px calc(12px + env(safe-area-inset-bottom));
   }
-  .dpad {
+  .joystick {
     width: 104px;
     height: 104px;
   }
-  .dpad button {
-    width: 34px;
-    height: 34px;
-    font-size: 15px;
-  }
-  .dpad .up,
-  .dpad .down {
-    left: 35px;
-  }
-  .dpad .down {
-    top: 70px;
-  }
-  .dpad .left,
-  .dpad .right {
-    top: 35px;
-  }
-  .dpad .right {
-    left: 70px;
+  .joystick-knob {
+    width: 44px;
+    height: 44px;
+    margin: -22px 0 0 -22px;
   }
   .actions {
     gap: 4px;
@@ -287,7 +384,7 @@ body.touch #touch {
 }
 
 @media (max-height: 480px) {
-  .dpad {
+  .joystick {
     transform: scale(0.85);
     transform-origin: bottom left;
   }

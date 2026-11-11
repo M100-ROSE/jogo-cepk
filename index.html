@@ -19,11 +19,8 @@
     </div>
 
     <div id="touch" aria-hidden="true">
-      <div class="dpad">
-        <button class="up" data-dir="up">▲</button>
-        <button class="left" data-dir="left">◀</button>
-        <button class="right" data-dir="right">▶</button>
-        <button class="down" data-dir="down">▼</button>
+      <div class="joystick" id="joystick">
+        <div class="joystick-knob" id="joystick-knob"></div>
       </div>
       <div class="actions">
         <button id="btn-map">M</button>
@@ -31,7 +28,28 @@
         <button id="btn-heavy">GOLPE</button>
         <button id="btn-def">DEF</button>
         <button id="btn-action">AÇÃO</button>
+        <button id="btn-code" title="Código secreto">CÓD</button>
       </div>
+    </div>
+
+    <div id="code-modal" aria-hidden="true">
+      <form id="code-form" autocomplete="off">
+        <label for="code-input">Código secreto</label>
+        <input
+          id="code-input"
+          type="text"
+          maxlength="24"
+          placeholder="/codigo"
+          autocomplete="off"
+          autocapitalize="characters"
+          spellcheck="false"
+        />
+        <p id="code-error" role="alert"></p>
+        <div class="code-modal__actions">
+          <button type="button" id="code-cancel">Cancelar</button>
+          <button type="submit">Invocar</button>
+        </div>
+      </form>
     </div>
 
     <script>
