@@ -169,6 +169,104 @@ const SECRET_COMMANDS = [
 ];
 const COMMAND_TIMEOUT_MS = 4000;
 
+/* Cenas narradas. Cada slide tem um fundo, uma arte e um pequeno texto.
+   A introdução abre a jornada; a do covil antecede o primeiro dragão senhor;
+   a final fecha a história antes da tela de vitória. */
+const CUTSCENES = {
+  intro: {
+    slides: [
+      {
+        bg: 'night',
+        art: 'chalice',
+        title: 'O CÁLICE DE OURO',
+        accent: '#e6bb4f',
+        lines: [
+          'Há muito tempo, o cálice guardava',
+          'a paz do reino no altar do castelo.',
+        ],
+      },
+      {
+        bg: 'forest',
+        art: 'wolf',
+        title: 'O LOBO CINZA',
+        accent: '#b8e86a',
+        lines: [
+          'Quando a escuridão tomou os bosques,',
+          'um lobo de uniforme escolar partiu sozinho.',
+        ],
+      },
+      {
+        bg: 'castle',
+        art: 'key',
+        title: 'A JORNADA',
+        accent: '#e8e2cc',
+        lines: [
+          'Encontre a chave dourada,',
+          'empunhe a espada e enfrente os dragões.',
+        ],
+      },
+      {
+        bg: 'altar',
+        art: 'sword',
+        title: 'O DESTINO',
+        accent: '#ffe9a3',
+        lines: [
+          'Devolva o cálice ao altar',
+          'antes que a noite consuma o reino.',
+        ],
+      },
+    ],
+  },
+  boss: {
+    slides: [
+      {
+        bg: 'cave',
+        art: 'dragon',
+        title: 'O COVIL',
+        accent: '#ff8a2a',
+        lines: [
+          'Um rugido faz a caverna tremer.',
+          '"Quem ousa perturbar meu sono?"',
+        ],
+      },
+      {
+        bg: 'cave',
+        art: 'wolf',
+        title: 'O LOBO RESPONDE',
+        accent: '#e8e2cc',
+        lines: [
+          'O lobo ergue a espada.',
+          '"Vim buscar o que pertence ao reino."',
+        ],
+      },
+    ],
+  },
+  ending: {
+    slides: [
+      {
+        bg: 'altar',
+        art: 'altar',
+        title: 'O CÁLICE VOLTOU',
+        accent: '#ffe9a3',
+        lines: [
+          'A luz dourada percorre o salão',
+          'e a escuridão recua pela primeira vez.',
+        ],
+      },
+      {
+        bg: 'night',
+        art: 'wolf',
+        title: 'PAZ NO REINO',
+        accent: '#b8e86a',
+        lines: [
+          'O lobo cinza observa o horizonte.',
+          'A jornada termina — por enquanto.',
+        ],
+      },
+    ],
+  },
+};
+
 /* Defesa e rolamento */
 const GUARD = {
   speedMul: 0.47,      // ~47% da velocidade andando
@@ -307,6 +405,8 @@ function createState() {
     projectiles: [],
     particles: [],
     transition: null,
+    cutscene: null,
+    bossCutsceneSeen: false,
     fade: 0,
     shake: 0,
     pickupCd: 0,
@@ -415,6 +515,8 @@ function resetRun(st) {
   st.projectiles = [];
   st.particles = [];
   st.transition = null;
+  st.cutscene = null;
+  st.bossCutsceneSeen = false;
   st.shake = 0;
   st.pickupCd = 0;
   st.speedBoostT = 0;
@@ -571,6 +673,9 @@ let secretLastAt = 0;
 let lastTrackToastAt = 0;
 let commandBuffer = '';
 let commandLastAt = 0;
+/* A introdução é apresentada uma vez por sessão; após game over/vitória,
+   reiniciar não repete a cena inicial. */
+let sessionIntroSeen = false;
 
 function feedSecretDigit(digit) {
   const now = Date.now();
@@ -715,13 +820,109 @@ function handleSecretCommandKey(e) {
   return true;
 }
 
+/* ------------------------------------------------------------------ */
+/* Cutscenes                                                          */
+/* ------------------------------------------------------------------ */
+
+const CUTSCENE_TYPE_SPEED = 42; // caracteres por segundo
+
+function cutsceneCharTotal(slide) {
+  return slide.lines.join(' ').length;
+}
+
+function startCutscene(st, id, after) {
+  const def = CUTSCENES[id];
+  if (!def) return;
+  releaseAllInput();
+  st.cutscene = {
+    id,
+    def,
+    index: 0,
+    t: 0,
+    reveal: 0,
+    revealDone: false,
+    after: after || 'play',
+  };
+  st.mode = 'cutscene';
+  st.showMap = false;
+  st.transition = null;
+  st.shake = 0;
+  clearGuard(st.player);
+  if (typeof Sound !== 'undefined') {
+    if (Sound.pauseMusic) Sound.pauseMusic();
+    Sound.sfx('click');
+  }
+}
+
+function updateCutscene(st, dt) {
+  const cs = st.cutscene;
+  if (!cs) return;
+  cs.t += dt;
+  const slide = cs.def.slides[cs.index];
+  const total = cutsceneCharTotal(slide);
+  cs.reveal = Math.min(total, Math.floor(Math.max(0, cs.t - 0.3) * CUTSCENE_TYPE_SPEED));
+  cs.revealDone = cs.reveal >= total;
+}
+
+function finishCutscene(st) {
+  const cs = st.cutscene;
+  if (!cs) return;
+  const after = cs.after;
+  const id = cs.id;
+  st.cutscene = null;
+  if (after === 'win') {
+    st.mode = 'win';
+    return;
+  }
+  st.mode = 'play';
+  if (typeof Sound !== 'undefined' && Sound.resumeMusic) Sound.resumeMusic();
+  if (id === 'intro') showRoomToast(st);
+  updateObjective(st);
+}
+
+function advanceCutscene(st, skip) {
+  const cs = st.cutscene;
+  if (!cs) return;
+  if (skip) {
+    Sound.sfx('click');
+    finishCutscene(st);
+    return;
+  }
+
+  const slide = cs.def.slides[cs.index];
+  const total = cutsceneCharTotal(slide);
+  if ((cs.reveal || 0) < total) {
+    // Primeiro toque completa o texto; o próximo avança.
+    cs.t = 99;
+    cs.reveal = total;
+    cs.revealDone = true;
+    return;
+  }
+
+  if (cs.index >= cs.def.slides.length - 1) {
+    finishCutscene(st);
+    return;
+  }
+
+  cs.index++;
+  cs.t = 0;
+  cs.reveal = 0;
+  cs.revealDone = false;
+  Sound.sfx('click');
+}
+
 function startGame() {
   Sound.init();
   if (Sound.musicMode === 'local' || Sound.musicMode === 'youtube') Sound.resumeMusic();
   else Sound.startMusic();
   resetRun(gameState);
-  gameState.mode = 'play';
-  showRoomToast(gameState);
+  if (!sessionIntroSeen) {
+    sessionIntroSeen = true;
+    startCutscene(gameState, 'intro', 'play');
+  } else {
+    gameState.mode = 'play';
+    showRoomToast(gameState);
+  }
 }
 
 function showRoomToast(st) {
@@ -741,6 +942,19 @@ function handleKeyDown(e) {
     if (code === 'Escape') {
       e.preventDefault();
       closeCodeModal(false);
+    }
+    return;
+  }
+
+  // Cutscene: Enter/Espaço avança, Esc pula a cena inteira. Nenhuma outra
+  // tecla deve mover o lobo ou abrir menus por baixo da narração.
+  if (gameState && gameState.mode === 'cutscene') {
+    if (code === 'Escape') {
+      e.preventDefault();
+      advanceCutscene(gameState, true);
+    } else if (code === 'Enter' || code === 'NumpadEnter' || code === 'Space') {
+      e.preventDefault();
+      advanceCutscene(gameState, false);
     }
     return;
   }
@@ -1084,6 +1298,7 @@ function setupTouch() {
       Sound.init();
       if (!gameState) return;
       if (gameState.mode === 'play') doAction(gameState);
+      else if (gameState.mode === 'cutscene') advanceCutscene(gameState, false);
       else if (gameState.mode === 'title' || gameState.mode === 'gameover' || gameState.mode === 'win') startGame();
     });
   }
@@ -1139,7 +1354,8 @@ function setupTouch() {
   canvas.addEventListener('pointerdown', (e) => {
     Sound.init();
     if (!gameState) return;
-    if (gameState.mode === 'title' || gameState.mode === 'gameover' || gameState.mode === 'win') startGame();
+    if (gameState.mode === 'cutscene') advanceCutscene(gameState, false);
+    else if (gameState.mode === 'title' || gameState.mode === 'gameover' || gameState.mode === 'win') startGame();
   });
 }
 
@@ -2555,6 +2771,17 @@ function updateParticles(st, dt) {
 function update(st, dt) {
   const p = st.player;
 
+  // Primeira entrada no Covil com o dragão senhor vivo: cena de confronto.
+  if (
+    !st.bossCutsceneSeen &&
+    st.room.id === 'covil' &&
+    st.enemies.some((e) => e.alive && e.boss && e.room === 'covil')
+  ) {
+    st.bossCutsceneSeen = true;
+    startCutscene(st, 'boss', 'play');
+    return;
+  }
+
   st.gateMsgCd = Math.max(0, st.gateMsgCd - dt);
   st.pickupCd = Math.max(0, st.pickupCd - dt);
   st.speedBoostT = Math.max(0, (st.speedBoostT || 0) - dt);
@@ -2621,7 +2848,6 @@ function update(st, dt) {
 
 function winGame(st) {
   st.won = true;
-  st.mode = 'win';
   st.player.rollT = 0;
   st.player.rollInvuln = 0;
   clearGuard(st.player);
@@ -2634,6 +2860,8 @@ function winGame(st) {
   st.shake = 6;
   spawnParticles(st, ALTAR.x, ALTAR.y - 20, '#ffe9a3', 40, { speed: 110, life: 1.4 });
   updateObjective(st);
+  // A tela de vitória só aparece depois da cena final.
+  startCutscene(st, 'ending', 'win');
 }
 
 /* ------------------------------------------------------------------ */
@@ -2701,6 +2929,11 @@ function render(st, t) {
 
   if (st.mode === 'title') {
     drawTitle(ctx, st, t);
+    return;
+  }
+
+  if (st.mode === 'cutscene') {
+    drawCutscene(ctx, st, t);
     return;
   }
 
@@ -2813,6 +3046,8 @@ function loop(now) {
 
   if (gameState.mode === 'play') {
     update(gameState, dt);
+  } else if (gameState.mode === 'cutscene') {
+    updateCutscene(gameState, dt);
   } else {
     // animações de fundo continuam em overlays
     if (gameState.toast.time > 0) gameState.toast.time = Math.max(0, gameState.toast.time - dt);
@@ -2822,7 +3057,10 @@ function loop(now) {
   }
 
   // usado pelo áudio para retomar a trilha sintetizada só durante o jogo
-  Sound.inGame = gameState.mode === 'play' || gameState.mode === 'pause';
+  Sound.inGame =
+    gameState.mode === 'play' ||
+    gameState.mode === 'pause' ||
+    gameState.mode === 'cutscene';
 
   render(gameState, t);
   requestAnimationFrame(loop);

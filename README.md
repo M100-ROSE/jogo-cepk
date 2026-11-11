@@ -26,6 +26,8 @@ Firefox). O jogo também funciona com controles de toque em celulares e tablets.
 | Ligar/desligar som | `N` |
 | Pausar | `P` ou `Esc` |
 | Começar / reiniciar | `Enter` |
+| Avançar cutscene | `Espaço` ou `Enter` (`AÇÃO` no celular) |
+| Pular cutscene | `Esc` |
 
 No celular use o **joystick analógico** na tela (arraste o dedo para qualquer
 direção; quanto mais longe do centro, mais rápido o lobo anda), além de `AÇÃO`,
@@ -36,6 +38,20 @@ mesma direção do joystick.
 
 No título, as teclas `1`, `2` e `3` escolhem a dificuldade (fácil/médio/difícil)
 imediatamente, sem precisar do `Enter`.
+
+## Cutscenes
+
+O jogo tem três cenas narradas em slides, com arte procedural e texto:
+
+- **Introdução** — apresentada ao iniciar uma nova jornada, uma vez por sessão.
+- **O Covil** — toca na primeira entrada no Covil do Dragão enquanto o chefe
+  estiver vivo.
+- **Final** — toca automaticamente depois de devolver o Cálice de Ouro ao altar,
+  antes da tela de vitória.
+
+`Espaço`/`Enter` (ou o botão `AÇÃO` no celular) completa o texto e avança; `Esc`
+pula a cena inteira. O primeiro toque durante a digitação revela o texto por
+completo.
 
 ## Regras rápidas
 

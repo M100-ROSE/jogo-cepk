@@ -3744,6 +3744,328 @@ function drawMiniMap(c, game, t) {
 /* Telas                                                              */
 /* ------------------------------------------------------------------ */
 
+/* ------------------------------------------------------------------ */
+/* Cutscenes                                                          */
+/* ------------------------------------------------------------------ */
+
+function cutsceneLerpHex(a, b, t) {
+  const ca = parseInt(a.slice(1), 16);
+  const cb = parseInt(b.slice(1), 16);
+  const r = Math.round(lerp((ca >> 16) & 255, (cb >> 16) & 255, t));
+  const g = Math.round(lerp((ca >> 8) & 255, (cb >> 8) & 255, t));
+  const bl = Math.round(lerp(ca & 255, cb & 255, t));
+  return `rgb(${r},${g},${bl})`;
+}
+
+function drawCutsceneBg(c, bg, t) {
+  const palettes = {
+    night: ['#070d18', '#1b2944'],
+    forest: ['#050f09', '#143522'],
+    castle: ['#080d16', '#242c3c'],
+    cave: ['#0b0709', '#33180f'],
+    altar: ['#080c18', '#4a3a18'],
+  };
+  const sky = palettes[bg] || palettes.night;
+
+  for (let y = 0; y < VH; y += 4) {
+    c.fillStyle = cutsceneLerpHex(sky[0], sky[1], y / VH);
+    c.fillRect(0, y, VW, 4);
+  }
+
+  // estrelas ou brasas flutuando
+  const rng = mulberry32(7331);
+  for (let i = 0; i < 46; i++) {
+    const x = Math.floor(rng() * VW);
+    const y = Math.floor(rng() * 205);
+    const tw = 0.2 + 0.8 * Math.abs(Math.sin(t * 1.4 + i * 1.7));
+    c.globalAlpha = tw * (bg === 'cave' ? 0.5 : 0.8);
+    px(c, x, y, 1, 1, bg === 'cave' ? '#ff9a4a' : '#dfe8ff');
+    c.globalAlpha = 1;
+  }
+
+  if (bg === 'night' || bg === 'forest') {
+    // pinheiros em silhueta
+    for (let i = 0; i < 17; i++) {
+      const x = 8 + i * 25 + (i % 3) * 5;
+      const h = 32 + (i % 4) * 11;
+      c.fillStyle = bg === 'night' ? '#0b1712' : '#07170e';
+      c.beginPath();
+      c.moveTo(x, 206 - h);
+      c.lineTo(x - 11, 212);
+      c.lineTo(x + 11, 212);
+      c.closePath();
+      c.fill();
+    }
+    px(c, 0, 210, VW, VH - 210, '#060b08');
+    px(c, 0, 210, VW, 1, '#13271b');
+  } else if (bg === 'castle') {
+    // torres do castelo
+    c.fillStyle = '#0a0f18';
+    const towers = [
+      [26, 44, 92],
+      [112, 56, 132],
+      [226, 46, 100],
+      [300, 64, 144],
+    ];
+    for (const [x, w, h] of towers) {
+      c.fillRect(x, 208 - h, w, h + 70);
+      c.beginPath();
+      c.moveTo(x - 7, 208 - h);
+      c.lineTo(x + w / 2, 208 - h - 24);
+      c.lineTo(x + w + 7, 208 - h);
+      c.closePath();
+      c.fill();
+    }
+    px(c, 58, 154, 3, 6, 'rgba(230,187,79,0.55)');
+    px(c, 142, 122, 3, 6, 'rgba(230,187,79,0.55)');
+    px(c, 248, 148, 3, 6, 'rgba(230,187,79,0.55)');
+    px(c, 326, 118, 3, 6, 'rgba(230,187,79,0.55)');
+    px(c, 0, 250, VW, VH - 250, '#070a10');
+  } else if (bg === 'cave') {
+    // estalactites e brilho de lava
+    c.fillStyle = '#180d0a';
+    for (let i = 0; i < 12; i++) {
+      const x = i * 36 + 6;
+      const h = 30 + ((i * 7) % 42);
+      c.beginPath();
+      c.moveTo(x, 0);
+      c.lineTo(x + 17, 0);
+      c.lineTo(x + 9, h);
+      c.closePath();
+      c.fill();
+    }
+    for (let i = 0; i < 9; i++) {
+      const x = i * 48 + 20;
+      const h = 18 + ((i * 11) % 30);
+      c.beginPath();
+      c.moveTo(x, VH);
+      c.lineTo(x + 20, VH);
+      c.lineTo(x + 10, VH - h);
+      c.closePath();
+      c.fill();
+    }
+    px(c, 0, 252, VW, VH - 252, '#1a0d08');
+    c.globalAlpha = 0.35 + 0.12 * Math.sin(t * 3);
+    px(c, 0, 252, VW, 4, '#ff6a2a');
+    c.globalAlpha = 1;
+  } else if (bg === 'altar') {
+    // colunas e raios dourados
+    c.fillStyle = '#090c13';
+    for (let i = 0; i < 4; i++) {
+      const x = 26 + i * 106;
+      c.fillRect(x, 78, 26, 174);
+      c.fillRect(x - 6, 70, 38, 10);
+      c.fillRect(x - 4, 244, 34, 8);
+    }
+    c.save();
+    c.translate(VW / 2, 216);
+    for (let i = 0; i < 12; i++) {
+      c.rotate(Math.PI / 6);
+      c.globalAlpha = 0.05 + 0.035 * Math.abs(Math.sin(t * 1.7 + i));
+      c.fillStyle = '#e6bb4f';
+      c.beginPath();
+      c.moveTo(0, 0);
+      c.lineTo(150, -16);
+      c.lineTo(150, 16);
+      c.closePath();
+      c.fill();
+    }
+    c.globalAlpha = 1;
+    c.restore();
+    px(c, 0, 250, VW, VH - 250, '#080a10');
+  }
+
+  // vinheta
+  const vg = c.createRadialGradient(VW / 2, 140, 70, VW / 2, 150, 300);
+  vg.addColorStop(0, 'rgba(0,0,0,0)');
+  vg.addColorStop(1, 'rgba(0,0,0,0.55)');
+  c.fillStyle = vg;
+  c.fillRect(0, 0, VW, VH);
+}
+
+function drawCutsceneWolf(c, cx, cy, t) {
+  const s = 1.55 * PLAYER_DRAW_SCALE;
+  const wy = cy + 28 + Math.sin(t * 1.6) * 2;
+
+  c.globalAlpha = 0.35;
+  pixelEllipse(c, cx, wy + 2, 14 * s, 3 * s, '#000');
+  c.globalAlpha = 1;
+
+  if (typeof PLAYER_IMG !== 'undefined' && PLAYER_IMG.complete && PLAYER_IMG.naturalWidth) {
+    c.save();
+    c.translate(Math.round(cx), Math.round(wy));
+    c.scale(s, s);
+    c.drawImage(PLAYER_IMG, 0, 0, 32, 48, -16, -48, 32, 48);
+    c.restore();
+  } else {
+    pixelEllipse(c, cx, wy - 12 * s, 10 * s, 17 * s, '#6f7a8a');
+    pixelCircle(c, cx, wy - 32 * s, 8 * s, '#8a95a4');
+    px(c, cx - 3 * s, wy - 35 * s, 2 * s, 2 * s, '#fff6d0');
+    px(c, cx + 3 * s, wy - 35 * s, 2 * s, 2 * s, '#fff6d0');
+  }
+}
+
+function drawCutsceneDragon(c, cx, cy, t) {
+  const y = cy + Math.sin(t * 1.3) * 2;
+  const body = '#4a241b';
+  const bodyLight = '#6a3022';
+
+  c.fillStyle = '#2e1610';
+  c.beginPath();
+  c.moveTo(cx - 8, y - 4);
+  c.lineTo(cx - 66, y - 40);
+  c.lineTo(cx - 48, y + 4);
+  c.closePath();
+  c.fill();
+  c.beginPath();
+  c.moveTo(cx + 8, y - 4);
+  c.lineTo(cx + 66, y - 40);
+  c.lineTo(cx + 48, y + 4);
+  c.closePath();
+  c.fill();
+  c.beginPath();
+  c.moveTo(cx - 18, y + 14);
+  c.lineTo(cx - 62, y + 34);
+  c.lineTo(cx - 50, y + 40);
+  c.lineTo(cx - 10, y + 26);
+  c.closePath();
+  c.fill();
+
+  pixelEllipse(c, cx, y + 14, 34, 24, body);
+  pixelEllipse(c, cx, y + 16, 24, 16, bodyLight);
+  pixelEllipse(c, cx + 28, y - 8, 15, 13, body);
+  px(c, cx + 20, y - 26, 5, 10, '#8a6a20');
+  px(c, cx + 38, y - 6, 16, 9, bodyLight);
+  px(c, cx + 38, y + 1, 14, 2, '#2e1610');
+  px(c, cx + 33, y - 11, 4, 3, '#ffd24a');
+  px(c, cx + 34, y - 11, 2, 1, '#fff6d0');
+  px(c, cx - 18, y + 34, 8, 12, body);
+  px(c, cx + 10, y + 34, 8, 12, body);
+
+  for (let i = 0; i < 4; i++) {
+    c.globalAlpha = 0.22 - i * 0.04;
+    pixelCircle(c, cx + 52 + i * 7, y - 12 - Math.sin(t * 2 + i) * 5, 4 + i * 2, '#9aa0aa');
+  }
+  c.globalAlpha = 1;
+}
+
+function drawCutsceneAltar(c, cx, cy, t) {
+  const y = cy + 10;
+
+  c.globalAlpha = 0.35;
+  pixelEllipse(c, cx, y + 34, 58, 9, '#000');
+  c.globalAlpha = 1;
+
+  px(c, cx - 48, y + 14, 96, 16, '#242a34');
+  px(c, cx - 40, y + 2, 80, 14, '#343c4a');
+  px(c, cx - 48, y + 14, 96, 3, '#5a626f');
+  px(c, cx - 36, y + 6, 72, 2, '#4a5361');
+
+  c.save();
+  c.translate(cx, y - 8);
+  for (let i = 0; i < 12; i++) {
+    c.rotate(Math.PI / 6);
+    c.globalAlpha = 0.08 + 0.05 * Math.abs(Math.sin(t * 1.8 + i));
+    c.fillStyle = '#e6bb4f';
+    c.beginPath();
+    c.moveTo(0, 0);
+    c.lineTo(58, -7);
+    c.lineTo(58, 7);
+    c.closePath();
+    c.fill();
+  }
+  c.globalAlpha = 1;
+  c.restore();
+
+  drawItemIcon(c, 'chalice', cx, y - 12 + Math.sin(t * 1.8) * 2, 2.6, t);
+}
+
+function drawCutsceneArt(c, art, cx, cy, t, game) {
+  const glow = c.createRadialGradient(cx, cy, 0, cx, cy, 70);
+  glow.addColorStop(0, 'rgba(230,187,79,0.16)');
+  glow.addColorStop(1, 'rgba(230,187,79,0)');
+  c.fillStyle = glow;
+  c.fillRect(cx - 70, cy - 70, 140, 140);
+
+  const bob = Math.sin(t * 1.7) * 2;
+  if (art === 'chalice') drawItemIcon(c, 'chalice', cx, cy + bob, 3, t);
+  else if (art === 'key') drawItemIcon(c, 'key', cx, cy + bob, 2.8, t);
+  else if (art === 'sword') drawItemIcon(c, 'sword', cx, cy + bob, 2.8, t);
+  else if (art === 'wolf') drawCutsceneWolf(c, cx, cy, t);
+  else if (art === 'dragon') drawCutsceneDragon(c, cx, cy, t);
+  else if (art === 'altar') drawCutsceneAltar(c, cx, cy, t);
+}
+
+function drawCutscene(c, game, t) {
+  const cs = game.cutscene;
+  if (!cs) return;
+  const slide = cs.def.slides[cs.index];
+  const accent = slide.accent || C.goldLight;
+
+  drawCutsceneBg(c, slide.bg, t);
+
+  // barras de cinema
+  px(c, 0, 0, VW, 20, '#030407');
+  px(c, 0, VH - 20, VW, 20, '#030407');
+
+  drawText(c, 'LOBO CINZA  •  O CÁLICE DE OURO', VW / 2, 25, {
+    scale: 1,
+    color: 'rgba(201,210,223,0.55)',
+    align: 'center',
+  });
+
+  drawText(c, slide.title, VW / 2, 37, {
+    scale: 2,
+    color: accent,
+    align: 'center',
+    outline: '#0a0c10',
+    shadow: '#000',
+  });
+
+  px(c, VW / 2 - 60, 56, 120, 1, accent);
+  px(c, VW / 2 - 30, 57, 60, 1, 'rgba(255,246,208,0.35)');
+
+  drawCutsceneArt(c, slide.art, VW / 2, 128, t, game);
+
+  let budget = Math.max(0, cs.reveal || 0);
+  slide.lines.forEach((line, i) => {
+    const shown = line.slice(0, Math.max(0, budget));
+    budget -= line.length + 1;
+    drawText(c, shown, VW / 2, 198 + i * 13, {
+      scale: 1,
+      color: '#d7dee8',
+      align: 'center',
+      shadow: '#05070a',
+    });
+  });
+
+  // indicador de progresso
+  const count = cs.def.slides.length;
+  const gap = 10;
+  const totalW = count * gap;
+  for (let i = 0; i < count; i++) {
+    const dx = VW / 2 - totalW / 2 + i * gap + gap / 2;
+    px(c, dx - 1, 229, 3, 3, i === cs.index ? accent : 'rgba(120,140,165,0.35)');
+  }
+
+  const touch = document.body.classList.contains('touch');
+  const hint = touch ? 'AÇÃO PARA CONTINUAR' : 'ESPAÇO/ENTER CONTINUAR   ESC PULAR';
+  drawText(c, hint, VW / 2, 250, {
+    scale: 1,
+    color: Math.floor(t * 2) % 2 ? accent : 'rgba(154,167,184,0.55)',
+    align: 'center',
+  });
+
+  drawText(c, cs.index + 1 + '/' + count, VW - 12, 268, {
+    scale: 1,
+    color: 'rgba(120,140,165,0.6)',
+    align: 'right',
+  });
+
+  const fade = clamp(1 - cs.t / 0.35, 0, 1);
+  if (fade > 0) drawFade(c, fade);
+}
+
 function drawTitle(c, game, t) {
   // céu noturno
   for (let i = 0; i < 30; i++) {
