@@ -217,6 +217,13 @@ const TALL_DECOR = new Set([
   'pc_tower',
   'save_star',
   'terminal_v',
+  'egg_alien',
+  'batsignal',
+  'arc_reactor',
+  'web_anchor',
+  'myers_figure',
+  'phone_scare',
+  'question_block',
 ]);
 
 function isTallDecor(d) {
@@ -2719,6 +2726,316 @@ function drawDecor(c, d, t, room) {
       c.globalAlpha = 1;
       break;
     }
+    case 'egg_alien': {
+      const pulse = 0.5 + 0.5 * Math.sin(t * 2.2 + (d.seed || 0));
+      const sd = d.seed || 0;
+      pixelEllipse(c, x, y + 1, 10, 3, 'rgba(0,0,0,0.34)');
+      c.globalAlpha = 0.06 + pulse * 0.08;
+      pixelEllipse(c, x, y - 10, 15, 13, d.open ? '#8aff6a' : '#6a8a4a');
+      c.globalAlpha = 1;
+
+      c.save();
+      c.translate(x, y);
+      const ps = 1 + pulse * 0.02;
+      c.scale(ps, ps);
+
+      if (!d.open) {
+        // ovo fechado: casco de couro e pétalas recolhidas
+        pixelEllipse(c, 0, -10, 8, 10, '#2e1d18');
+        pixelEllipse(c, 0, -10, 7, 9, '#4a3026');
+        pixelEllipse(c, -2, -12, 3, 5, '#6a4634');
+        pixelEllipse(c, 2, -8, 2, 4, '#3a241e');
+        // sulcos entre as pétalas
+        c.fillStyle = 'rgba(22,10,8,0.75)';
+        for (const gx of [-5, 0, 5]) {
+          for (let yy = 0; yy < 19; yy++) {
+            const off = Math.sin(yy * 0.45 + gx) * 0.8;
+            c.fillRect(Math.round(gx + off), -20 + yy, 1, 1);
+          }
+        }
+        // pontas fechadas
+        px(c, -6, -20, 3, 2, '#3a241e');
+        px(c, -2, -21, 3, 2, '#4a3026');
+        px(c, 2, -21, 3, 2, '#4a3026');
+        px(c, 5, -20, 3, 2, '#3a241e');
+        // poros e manchas
+        speckle(c, -6, -18, 12, 16, '#2a1814', 9, mulberry32(sd), 1);
+        speckle(c, -5, -17, 10, 14, '#7a5a44', 5, mulberry32(sd + 1), 1);
+        px(c, -3, -15, 1, 1, '#8a6a52');
+      } else {
+        // casco inferior
+        pixelEllipse(c, 0, -6, 8, 7, '#2e1d18');
+        pixelEllipse(c, 0, -6, 7, 6, '#4a3026');
+        pixelEllipse(c, -2, -7, 3, 4, '#6a4634');
+        // abertura escura
+        pixelEllipse(c, 0, -12, 7, 3, '#3a241e');
+        pixelEllipse(c, 0, -12, 6, 2, '#0e1a10');
+        // pétalas abertas para fora
+        const petal = (ax, ay, bx2, by2, cx2, cy2) => {
+          c.fillStyle = '#4a3026';
+          c.beginPath();
+          c.moveTo(ax, ay);
+          c.lineTo(bx2, by2);
+          c.lineTo(cx2, cy2);
+          c.closePath();
+          c.fill();
+        };
+        petal(-2, -12, -15, -20, -9, -8);
+        petal(-1, -13, -5, -28, 2, -12);
+        petal(1, -13, 6, -28, 4, -12);
+        petal(2, -12, 15, -20, 9, -8);
+        // bordas iluminadas das pétalas
+        px(c, -13, -19, 1, 3, '#6a4634');
+        px(c, -5, -27, 1, 5, '#6a4634');
+        px(c, 6, -27, 1, 5, '#6a4634');
+        px(c, 13, -19, 1, 3, '#6a4634');
+        // interior ácido
+        c.globalAlpha = 0.35 + pulse * 0.45;
+        pixelCircle(c, 0, -12, 3, '#8aff6a');
+        pixelCircle(c, 0, -12, 1.5, '#e0ffb0');
+        c.globalAlpha = 1;
+        // gosma
+        pixelEllipse(c, 7, -1, 3, 1, 'rgba(110,180,80,0.45)');
+        px(c, 6, -4, 1, 3, '#6a9a52');
+        px(c, 9, -3, 1, 2, '#6a9a52');
+        px(c, -8, -2, 1, 2, '#4a7a3a');
+      }
+      c.restore();
+      break;
+    }
+    case 'batsignal': {
+      // projetor antigo: lente no ponto de ancoragem, tripé abaixo
+      pixelEllipse(c, x + 1, y + 34, 20, 5, 'rgba(0,0,0,0.32)');
+      c.strokeStyle = '#2a2a30';
+      c.lineWidth = 2;
+      c.beginPath();
+      c.moveTo(x - 2, y + 8);
+      c.lineTo(x - 14, y + 34);
+      c.moveTo(x + 2, y + 8);
+      c.lineTo(x + 13, y + 34);
+      c.moveTo(x, y + 8);
+      c.lineTo(x + 2, y + 35);
+      c.stroke();
+      c.strokeStyle = '#4a4a54';
+      c.beginPath();
+      c.moveTo(x - 2, y + 8);
+      c.lineTo(x - 13, y + 33);
+      c.stroke();
+      // pés do tripé
+      px(c, x - 17, y + 33, 7, 2, '#1a1a1f');
+      px(c, x + 10, y + 33, 7, 2, '#1a1a1f');
+      px(c, x, y + 34, 5, 2, '#1a1a1f');
+      // corpo de metal
+      px(c, x - 21, y - 9, 19, 18, '#2a2a30');
+      px(c, x - 21, y - 9, 19, 3, '#4a4a54');
+      px(c, x - 21, y + 6, 19, 3, '#17171c');
+      px(c, x - 23, y - 6, 3, 12, '#3a3a44');
+      px(c, x - 16, y - 5, 1, 10, '#22222a');
+      // alça pequena
+      px(c, x - 15, y - 14, 9, 2, '#55555e');
+      px(c, x - 16, y - 13, 2, 4, '#3a3a44');
+      px(c, x - 7, y - 13, 2, 3, '#3a3a44');
+      // interruptor
+      px(c, x - 16, y + 1, 3, 3, '#8a3a2a');
+      // lente amarela apagada
+      pixelCircle(c, x, y, 7, '#3a3a42');
+      pixelCircle(c, x, y, 6, '#6a5a22');
+      pixelCircle(c, x, y, 4, '#8a7a2a');
+      pixelCircle(c, x, y, 2, '#b8a63e');
+      px(c, x - 2, y - 2, 2, 2, '#e6d27a');
+      // suporte da lente
+      px(c, x - 3, y - 8, 4, 4, '#22222a');
+      px(c, x - 3, y + 4, 4, 4, '#22222a');
+      break;
+    }
+    case 'arc_reactor': {
+      const pulse = 0.5 + 0.5 * Math.sin(t * 2.4 + (d.seed || 0));
+      pixelEllipse(c, x, y + 1, 17, 4, 'rgba(0,0,0,0.35)');
+      c.globalAlpha = 0.08 + pulse * 0.12;
+      pixelEllipse(c, x, y, 22, 7, '#4ad0e8');
+      pixelCircle(c, x, y - 22, 18, '#4ad0e8');
+      c.globalAlpha = 1;
+      // pedestal baixo
+      px(c, x - 15, y - 10, 30, 10, '#26323a');
+      px(c, x - 15, y - 10, 30, 2, '#4a5a64');
+      px(c, x - 15, y - 2, 30, 2, '#171f24');
+      px(c, x - 12, y - 14, 24, 5, '#33424c');
+      px(c, x - 12, y - 14, 24, 1, '#607078');
+      px(c, x - 6, y - 18, 12, 4, '#2a3840');
+      px(c, x - 6, y - 18, 12, 1, '#52626c');
+      // anel externo segmentado
+      for (let i = 0; i < 8; i++) {
+        const a = (i / 8) * Math.PI * 2;
+        const rx = x + Math.round(Math.cos(a) * 11);
+        const ry = y - 22 + Math.round(Math.sin(a) * 11);
+        px(c, rx - 2, ry - 1, 4, 2, i % 2 ? '#8a9aa4' : '#5a6a74');
+        px(c, rx - 1, ry - 1, 2, 1, '#c8d4dc');
+      }
+      // núcleo ciano/azul-branco
+      pixelCircle(c, x, y - 22, 8, '#123a46');
+      pixelCircle(c, x, y - 22, 6, '#1e7a92');
+      pixelCircle(c, x, y - 22, 4, '#4ad0e8');
+      pixelCircle(c, x, y - 22, 2, '#d8ffff');
+      c.globalAlpha = 0.25 + pulse * 0.4;
+      px(c, x - 3, y - 26, 2, 2, '#eaffff');
+      px(c, x + 2, y - 20, 1, 1, '#eaffff');
+      c.globalAlpha = 1;
+      break;
+    }
+    case 'web_anchor': {
+      const sway = Math.sin(t * 0.8 + (d.seed || 0)) * 0.6;
+      const topY = INNER.y + 1;
+      const hookY = y - 3;
+      const strands = [[-16, 0.2], [-7, 0.8], [5, 1.1], [14, 0.5]];
+      c.strokeStyle = 'rgba(210,205,190,0.45)';
+      c.lineWidth = 1;
+      for (const [off, k] of strands) {
+        c.beginPath();
+        c.moveTo(x + off, topY);
+        c.lineTo(x + sway * k, hookY);
+        c.stroke();
+      }
+      // fios transversais formando a teia
+      c.strokeStyle = 'rgba(210,205,190,0.28)';
+      for (const f of [0.28, 0.52, 0.76]) {
+        const py2 = Math.round(topY + (hookY - topY) * f);
+        const left = Math.round(x - 16 * (1 - f) + sway * f);
+        const right = Math.round(x + 14 * (1 - f) + sway * f);
+        c.beginPath();
+        c.moveTo(left, py2);
+        c.quadraticCurveTo(x, py2 + 3, right, py2);
+        c.stroke();
+      }
+      // gancho preso na parede
+      px(c, x - 4, y - 7, 8, 2, '#5a5148');
+      px(c, x - 4, y - 5, 2, 4, '#4a4238');
+      px(c, x + 2, y - 5, 2, 4, '#4a4238');
+      px(c, x - 1, y - 8, 3, 2, '#7a7060');
+      // aranha pendurada
+      const spiderY = y - 12 + Math.sin(t * 1.4 + (d.seed || 0)) * 1.5;
+      px(c, x, y - 22, 1, Math.max(2, spiderY - (y - 22)), 'rgba(215,210,195,0.4)');
+      px(c, x - 2, spiderY, 5, 3, '#2a2420');
+      px(c, x - 1, spiderY - 2, 3, 2, '#2a2420');
+      px(c, x - 4, spiderY, 2, 1, '#3a342c');
+      px(c, x + 3, spiderY, 2, 1, '#3a342c');
+      px(c, x - 4, spiderY + 2, 2, 1, '#3a342c');
+      px(c, x + 3, spiderY + 2, 2, 1, '#3a342c');
+      px(c, x - 1, spiderY - 1, 1, 1, '#c84a3a');
+      px(c, x + 1, spiderY - 1, 1, 1, '#c84a3a');
+      break;
+    }
+    case 'myers_figure': {
+      if (!d.hidden) {
+        const breath = Math.round(Math.sin(t * 1.1 + (d.seed || 0)) * 0.5);
+        pixelEllipse(c, x, y + 1, 11, 3, 'rgba(0,0,0,0.36)');
+        // pernas e botas
+        px(c, x - 6, y - 18, 4, 18, '#232a26');
+        px(c, x + 2, y - 18, 4, 18, '#1a201d');
+        px(c, x - 7, y - 3, 5, 3, '#121514');
+        px(c, x + 2, y - 3, 5, 3, '#121514');
+        // macacão
+        px(c, x - 8, y - 36 + breath, 16, 19, '#28302b');
+        px(c, x - 8, y - 36 + breath, 16, 2, '#3a443d');
+        px(c, x - 8, y - 36 + breath, 2, 18, '#333d37');
+        px(c, x + 6, y - 36 + breath, 2, 18, '#1a201d');
+        px(c, x, y - 33 + breath, 1, 15, '#1a201d');
+        // braços rígidos
+        px(c, x - 11, y - 34 + breath, 3, 17, '#252d28');
+        px(c, x + 8, y - 34 + breath, 3, 17, '#1a201d');
+        px(c, x - 11, y - 18 + breath, 3, 2, '#c8c2ac');
+        px(c, x + 8, y - 18 + breath, 3, 2, '#c8c2ac');
+        // máscara pálida genérica
+        px(c, x - 6, y - 47 + breath, 12, 13, '#d8d2bc');
+        px(c, x - 5, y - 46 + breath, 10, 11, '#e6e0cc');
+        // cabelo escuro
+        px(c, x - 7, y - 48 + breath, 14, 4, '#241e18');
+        px(c, x - 7, y - 45 + breath, 2, 6, '#241e18');
+        px(c, x + 5, y - 45 + breath, 2, 6, '#2a241e');
+        // olhos vazios, nariz e boca discretos
+        px(c, x - 4, y - 42 + breath, 2, 2, '#14120f');
+        px(c, x + 2, y - 42 + breath, 2, 2, '#14120f');
+        px(c, x, y - 40 + breath, 1, 2, '#b8b2a0');
+        px(c, x - 2, y - 37 + breath, 4, 1, '#9a8f80');
+        // marca genérica na bochecha
+        px(c, x - 4, y - 38 + breath, 2, 1, '#b5aa96');
+      }
+      break;
+    }
+    case 'phone_scare': {
+      // telefone de parede antigo
+      px(c, x - 13, y - 36, 26, 34, 'rgba(0,0,0,0.22)');
+      px(c, x - 9, y - 34, 18, 32, '#2a1e18');
+      px(c, x - 9, y - 34, 18, 2, '#4a3426');
+      px(c, x - 9, y - 34, 2, 32, '#3a2a20');
+      px(c, x + 7, y - 34, 2, 32, '#17100c');
+      px(c, x - 7, y - 31, 14, 22, '#3a2a20');
+      // parafusos
+      for (const [sx2, sy2] of [[-7, -31], [6, -31], [-7, -12], [6, -12]]) {
+        px(c, x + sx2, y + sy2, 1, 1, '#8a6a48');
+      }
+      // fone no gancho
+      px(c, x - 14, y - 32, 7, 4, '#3a2a20');
+      px(c, x - 14, y - 19, 7, 4, '#3a2a20');
+      px(c, x - 13, y - 31, 5, 15, '#241a14');
+      px(c, x - 12, y - 27, 3, 7, '#4a3426');
+      px(c, x - 12, y - 31, 3, 1, '#6a4a32');
+      px(c, x - 8, y - 28, 2, 3, '#5a4030');
+      px(c, x - 8, y - 20, 2, 3, '#5a4030');
+      // cordão ondulado até a base
+      c.strokeStyle = '#1a120e';
+      c.lineWidth = 1;
+      c.beginPath();
+      c.moveTo(x - 10, y - 16);
+      for (let i = 1; i <= 12; i++) {
+        const f = i / 12;
+        c.lineTo(x - 10 + f * 14 + Math.sin(f * Math.PI * 5) * 3, y - 16 + f * 14);
+      }
+      c.stroke();
+      c.strokeStyle = 'rgba(120,90,60,0.35)';
+      c.beginPath();
+      c.moveTo(x - 10, y - 15);
+      for (let i = 1; i <= 12; i++) {
+        const f = i / 12;
+        c.lineTo(x - 10 + f * 14 + Math.sin(f * Math.PI * 5) * 3, y - 15 + f * 14);
+      }
+      c.stroke();
+      // manivela
+      px(c, x + 9, y - 24, 4, 2, '#4a3426');
+      pixelCircle(c, x + 13, y - 23, 2, '#6a4a32');
+      px(c, x + 9, y - 21, 3, 2, '#2a1e18');
+      // plaqueta
+      px(c, x - 5, y - 28, 10, 3, '#5a4532');
+      px(c, x - 3, y - 27, 6, 1, '#8a6a48');
+      break;
+    }
+    case 'question_block': {
+      const bounce = d.bounceT > 0 ? -Math.sin((d.bounceT / 0.35) * Math.PI) * 6 : 0;
+      pixelEllipse(c, x, y, 8, 2, 'rgba(0,0,0,0.28)');
+      const by2 = y - 26 + bounce;
+      // bloco amarelo com chanfros
+      px(c, x - 8, by2, 16, 16, '#e6bb4f');
+      px(c, x - 8, by2, 16, 2, '#ffe9a3');
+      px(c, x - 8, by2, 2, 16, '#ffe9a3');
+      px(c, x - 8, by2 + 14, 16, 2, '#a97c25');
+      px(c, x + 6, by2, 2, 16, '#a97c25');
+      px(c, x - 5, by2 + 3, 10, 10, '#e8c85a');
+      px(c, x - 5, by2 + 3, 10, 1, '#f4d878');
+      // parafusos nos cantos
+      for (const [dx2, dy2] of [[-6, 2], [5, 2], [-6, 13], [5, 13]]) {
+        px(c, x + dx2, by2 + dy2, 1, 1, '#8a6418');
+      }
+      // "?" em pixels escuros
+      const qx = x - 2, qy = by2 + 3, qc = '#6a4a08';
+      const q = (dx2, dy2, w, h) => px(c, qx + dx2, qy + dy2, w, h, qc);
+      q(1, 0, 3, 1);
+      q(0, 1, 1, 1);
+      q(4, 1, 1, 1);
+      q(4, 2, 1, 1);
+      q(3, 3, 1, 1);
+      q(2, 4, 1, 1);
+      q(2, 6, 1, 1);
+      break;
+    }
     default:
       break;
   }
@@ -3397,6 +3714,27 @@ function drawBat(c, b, t) {
 /* Efeitos dinâmicos da sala                                          */
 /* ------------------------------------------------------------------ */
 
+/* Silhueta genérica de morcego para a projeção do bat-sinal.
+   Forma original, apenas com asas abertas, sem qualquer logo conhecido. */
+function drawBatProjection(c, cx, cy, s = 1) {
+  const pts = [
+    [0, 3], [-3, 2], [-6, 4], [-9, 1], [-10, 3], [-16, 0],
+    [-15, -4], [-10, -2], [-7, -5], [-3, -3], [-2, -6], [0, -4],
+    [2, -6], [3, -3], [7, -5], [10, -2], [15, -4], [16, 0],
+    [10, 3], [9, 1], [6, 4], [3, 2],
+  ];
+  c.fillStyle = '#ffe9a3';
+  c.beginPath();
+  for (let i = 0; i < pts.length; i++) {
+    const px2 = cx + pts[i][0] * s;
+    const py2 = cy + pts[i][1] * s;
+    if (i === 0) c.moveTo(px2, py2);
+    else c.lineTo(px2, py2);
+  }
+  c.closePath();
+  c.fill();
+}
+
 function drawRoomFX(c, room, t) {
   // tochas
   for (const torch of room.torches) {
@@ -3458,6 +3796,72 @@ function drawRoomFX(c, room, t) {
     c.globalAlpha = 0.18 * pulse;
     pixelCircle(c, ALTAR.x, ALTAR.y - 8, 30, '#e6bb4f');
     c.globalAlpha = 1;
+  }
+
+  // bat-sinal aceso nas ruínas: feixe contínuo e projeção genérica na parede
+  if (room.id === 'ruinas' && room.batLit) {
+    const bd = room.decor.find((d) => d.type === 'batsignal');
+    const bx = bd ? bd.x : 72;
+    const by = bd ? bd.y : 120;
+    const flick = 0.5 + 0.5 * Math.sin(t * 3.4 + bx * 0.1);
+    const tx = bx + 82;
+
+    // feixe de luz pálido até a faixa superior da parede
+    c.globalAlpha = 0.08 + flick * 0.05;
+    c.fillStyle = '#ffe9a3';
+    c.beginPath();
+    c.moveTo(bx - 2, by - 2);
+    c.lineTo(tx - 22, INNER.y);
+    c.lineTo(tx + 22, INNER.y);
+    c.lineTo(bx + 2, by + 2);
+    c.closePath();
+    c.fill();
+    // raios internos
+    c.globalAlpha = 0.12 + flick * 0.08;
+    c.strokeStyle = '#fff6d0';
+    c.lineWidth = 1;
+    c.beginPath();
+    c.moveTo(bx, by - 1);
+    c.lineTo(tx - 6, INNER.y);
+    c.moveTo(bx, by + 1);
+    c.lineTo(tx + 8, INNER.y);
+    c.stroke();
+    // halo da lente
+    c.globalAlpha = 0.25 + flick * 0.35;
+    pixelCircle(c, bx, by, 9 + flick * 2, '#ffe9a3');
+    c.globalAlpha = 1;
+
+    // silhueta de morcego projetada
+    c.globalAlpha = 0.38 + flick * 0.22;
+    drawBatProjection(c, tx, INNER.y - 7, 1);
+    c.globalAlpha = 1;
+  }
+
+  // telefone tocando na cabana
+  if (room.id === 'cabana') {
+    const gs = (typeof gameState !== 'undefined' && gameState)
+      || (typeof game !== 'undefined' && game)
+      || null;
+    if (gs && gs.easter && gs.easter.phoneRinging) {
+      const pd = room.decor.find((d) => d.type === 'phone_scare');
+      const phx = pd ? pd.x : 330;
+      const phy = pd ? pd.y : 222;
+      const cxp = phx - 11;
+      const cyp = phy - 24 + Math.round(Math.sin(t * 32) * 0.5);
+      const ringPulse = 0.5 + 0.5 * Math.sin(t * 11);
+      c.lineWidth = 1;
+      for (let i = 0; i < 3; i++) {
+        const r = 5 + i * 4 + ringPulse * 1.5;
+        c.globalAlpha = (0.65 - i * 0.16) * (0.45 + ringPulse * 0.55);
+        c.strokeStyle = i === 0 ? '#fff6d0' : '#ffe9a3';
+        c.beginPath();
+        c.arc(cxp, cyp, r, Math.PI * 0.60, Math.PI * 1.40);
+        c.stroke();
+      }
+      c.globalAlpha = 0.25 + ringPulse * 0.45;
+      px(c, cxp + 1, cyp - 2, 2, 4, '#fff6d0');
+      c.globalAlpha = 1;
+    }
   }
 }
 

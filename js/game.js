@@ -332,6 +332,23 @@ function freshEasterFlags() {
     robloxUsed: false,
     undertaleUsed: false,
     ultrakillUsed: false,
+    // Easter eggs geek (estado e timers por jornada)
+    alienUsed: false,
+    alienT: 0,
+    batUsed: false,
+    arcUsed: false,
+    arcHoldT: 0,
+    webCd: 0,
+    myersT: 0,
+    myersStage: 0,
+    myersDone: false,
+    phoneT: 16,
+    phoneRinging: false,
+    phoneIdx: 0,
+    konamiUsed: false,
+    konamiBuf: '',
+    konamiT: 0,
+    marioUsed: false,
   };
 }
 
@@ -461,6 +478,25 @@ function findEnemySpawn(st, room, roomId) {
   return { x: 200, y: 140 };
 }
 
+/* Restaura os decor geek criados uma única vez em buildWorld. Sem isso, um
+   ovo aberto ou um Myers que sumiu continuariam assim entre partidas. */
+function resetGeekEggs() {
+  for (const key in GEEK_EGGS) {
+    const egg = GEEK_EGGS[key];
+    const room = world.rooms[egg.room];
+    if (!room) continue;
+    room.batLit = false;
+    room.bg = null;
+    const d = room.decor.find((o) => o.type === egg.type);
+    if (!d) continue;
+    d.x = egg.x;
+    d.y = egg.y;
+    delete d.open;
+    d.hidden = false;
+    d.bounceT = 0;
+  }
+}
+
 function resetRun(st) {
   // Itens
   for (const roomId in world.rooms) {
@@ -482,6 +518,7 @@ function resetRun(st) {
     delete room.exits[SECRET_PASSAGES[parentId].side];
     room.bg = null;
   }
+  resetGeekEggs();
   for (const def of ITEM_DEFS) {
     const it = st.world.items.find((i) => i.id === def.id);
     it.taken = false;
@@ -779,6 +816,11 @@ function grantSecretWeapon(st, weaponKey) {
 }
 
 function executeSecretCommand(st, raw) {
+  const text = String(raw || '').trim().replace(/^\//, '');
+  // Alternativa mobile ao código Konami (setas não existem no teclado virtual).
+  if (text.replace(/\s+/g, '').toUpperCase() === 'KONAMI') {
+    return grantKonami(st);
+  }
   const entry = matchSecretCommand(raw);
   if (!entry) return false;
   return grantSecretWeapon(st, entry.weapon);
@@ -1015,6 +1057,9 @@ function handleKeyDown(e) {
   }
 
   if (gameState.mode !== 'play') return;
+
+  // Código Konami: apenas observa a sequência, sem bloquear o movimento.
+  if (!e.repeat) feedKonami(gameState, code);
 
   if (code === 'KeyM') {
     gameState.showMap = !gameState.showMap;
@@ -1718,6 +1763,43 @@ function tryEasterEgg(st) {
       } else {
         Sound.sfx('toast');
         toast(st, 'Terminal já processou sua fúria.', 2.2);
+      }
+      return true;
+    }
+
+    if (egg.kind === 'batman') {
+      if (!st.hasLantern) {
+        Sound.sfx('toast');
+        toast(st, 'Escuro demais. Uma lanterna ajudaria.', 2.8);
+        return true;
+      }
+      if (!st.easter.batUsed) {
+        st.easter.batUsed = true;
+        st.shield = Math.max(1, st.shield || 0);
+        st.room.batLit = true;
+        st.room.bg = null;
+        Sound.sfx('batman');
+        spawnParticles(st, egg.x, egg.y - 26, '#f2e06a', 14, { speed: 32, life: 1 });
+        spawnParticles(st, egg.x, egg.y - 26, '#fff6d0', 8, { speed: 22, life: 0.8 });
+        toast(st, 'O sinal está no céu. Escudo de 1 golpe.', 3.2);
+      } else {
+        Sound.sfx('toast');
+        toast(st, 'O sinal já está aceso.', 2.2);
+      }
+      return true;
+    }
+
+    if (egg.kind === 'panic') {
+      if (st.easter.phoneRinging) {
+        st.easter.phoneRinging = false;
+        const line = phoneScareLines[st.easter.phoneIdx % phoneScareLines.length];
+        st.easter.phoneIdx = (st.easter.phoneIdx + 1) % phoneScareLines.length;
+        Sound.sfx('phone');
+        toast(st, line, 3.4);
+        spawnParticles(st, egg.x, egg.y - 10, '#d8503f', 8, { speed: 24, life: 0.7 });
+      } else {
+        Sound.sfx('toast');
+        toast(st, 'O telefone está mudo.', 2.2);
       }
       return true;
     }
@@ -2765,6 +2847,202 @@ function updateParticles(st, dt) {
 }
 
 /* ------------------------------------------------------------------ */
+/* Easter eggs geek                                                   */
+/* ------------------------------------------------------------------ */
+
+const KONAMI_SEQUENCE = [
+  'ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown',
+  'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight',
+  'KeyB', 'KeyA',
+];
+
+const phoneScareLines = [
+  'Qual é o seu filme de terror favorito?',
+  'Tem alguém no Labirinto Profundo.',
+  'Não corra pela escada.',
+  'Nunca diga que não é um bom momento.',
+  'Eu ligo de dentro do seu próprio jogo.',
+];
+
+function findGeekDecor(room, type) {
+  if (!room) return null;
+  return room.decor.find((d) => d.type === type) || null;
+}
+
+/* Recompensa compartilhada pelo teclado e pelo modal de código (KONAMI). */
+function grantKonami(st) {
+  if (!st || !st.easter) return false;
+  if (st.easter.konamiUsed) {
+    toast(st, 'O código já foi usado nesta jornada.', 2.4);
+    return true;
+  }
+  st.easter.konamiUsed = true;
+  st.maxHearts += 1;
+  st.hearts = Math.min(st.maxHearts, st.hearts + 1);
+  Sound.sfx('konami');
+  toast(st, '↑↑↓↓←→←→BA — CÓDIGO KONAMI! +1 coração máximo.', 3.6);
+  spawnParticles(st, st.player.x, st.player.y - 18, '#f2d94a', 16, { speed: 34, life: 0.9 });
+  spawnParticles(st, st.player.x, st.player.y - 18, '#ffffff', 8, { speed: 24, life: 0.7 });
+  return true;
+}
+
+/* Observa a sequência sem bloquear o movimento nem outras teclas. */
+function feedKonami(st, code) {
+  if (!st || st.mode !== 'play' || !st.easter) return false;
+  if (!KONAMI_SEQUENCE.includes(code)) return false;
+
+  const e = st.easter;
+  const now = Date.now();
+  if (!e.konamiT || now - e.konamiT > 2500) e.konamiBuf = '';
+  e.konamiT = now;
+
+  const seq = KONAMI_SEQUENCE.join(',');
+  const candidate = e.konamiBuf ? e.konamiBuf + ',' + code : code;
+
+  if (seq.indexOf(candidate) !== 0) {
+    // Reinicia no primeiro passo se a tecla atual puder iniciar a sequência.
+    e.konamiBuf = code === KONAMI_SEQUENCE[0] ? code : '';
+    return true;
+  }
+
+  e.konamiBuf = candidate;
+  if (candidate === seq) {
+    e.konamiBuf = '';
+    grantKonami(st);
+  }
+  return true;
+}
+
+/* Verificações passivas dos eggs geek. Chamado só em play e fora de
+   transição, sempre baseado em dt (sem timers externos). */
+function updateGeekEggs(st, dt) {
+  const p = st.player;
+  const e = st.easter;
+  const room = st.room;
+
+  // 1) Ovo alienígena na Cripta: eclode se o jogador ficar parado perto.
+  if (room.id === 'cripta' && !e.alienUsed) {
+    const egg = GEEK_EGGS.alien;
+    const near = dist(p.x, p.y, egg.x, egg.y) < 44;
+    const still = !p.moving && p.rollT <= 0;
+    if (near && still) {
+      e.alienT += dt;
+      if (e.alienT >= 1.4) {
+        e.alienT = 0;
+        e.alienUsed = true;
+        const d = findGeekDecor(room, egg.type);
+        if (d) d.open = true;
+        st.powerBoostT = Math.max(st.powerBoostT || 0, 6);
+        st.shake = 6;
+        Sound.sfx('hiss');
+        spawnParticles(st, egg.x, egg.y - 10, '#7fe65a', 16, { speed: 48, life: 0.9 });
+        spawnParticles(st, egg.x, egg.y - 10, '#c8ff6a', 8, { speed: 32, life: 1 });
+        toast(st, 'O ovo abriu. Algo passou por você.', 3.2);
+      }
+    } else {
+      e.alienT = 0;
+    }
+  }
+
+  // 3) Reator arc na Sala do Tesouro: manter a guarda perto por 1,5s.
+  if (room.id === 'sala_tesouro' && !e.arcUsed) {
+    const arc = GEEK_EGGS.ironman;
+    const holding = p.guarding || p.guardT > 0;
+    if (holding && dist(p.x, p.y, arc.x, arc.y) < 48) {
+      e.arcHoldT += dt;
+      if (e.arcHoldT >= 1.5) {
+        e.arcHoldT = 0;
+        e.arcUsed = true;
+        st.shield = Math.max(1, st.shield || 0);
+        st.powerBoostT = Math.max(st.powerBoostT || 0, 8);
+        Sound.sfx('arc');
+        spawnParticles(st, arc.x, arc.y - 12, '#7fe6e6', 16, { speed: 42, life: 0.9 });
+        spawnParticles(st, arc.x, arc.y - 12, '#ffffff', 8, { speed: 28, life: 0.7 });
+        toast(st, 'Reator sobrecarregado: escudo e +1 dano por 8s.', 3.4);
+      }
+    } else {
+      e.arcHoldT = 0;
+    }
+  }
+
+  // 4) Âncora de teia na Caverna: dispara durante o rolamento.
+  if (room.id === 'caverna' && p.rollT > 0 && e.webCd <= 0) {
+    const web = GEEK_EGGS.spiderman;
+    if (dist(p.x, p.y, web.x, web.y) < 44) {
+      e.webCd = 12;
+      st.speedBoostT = Math.max(st.speedBoostT || 0, 5);
+      Sound.sfx('web');
+      spawnParticles(st, web.x, web.y - 8, '#f4f7ff', 12, { speed: 36, life: 0.7 });
+      spawnParticles(st, web.x, web.y - 8, '#c8d8e8', 6, { speed: 24, life: 0.6 });
+      toast(st, 'Teia puxada! Velocidade extra por 5s.', 2.8);
+    }
+  }
+
+  // 5) Figura no Cemitério: avança um estágio a cada 2,5s de olhar parado.
+  if (room.id === 'cemiterio' && !e.myersDone) {
+    const egg = GEEK_EGGS.myers;
+    const d = findGeekDecor(room, egg.type);
+    const mx = d ? d.x : egg.x;
+    const my = d ? d.y : egg.y;
+    const still = !p.moving && p.rollT <= 0 && p.swing <= 0;
+    if (still && dist(p.x, p.y, mx, my) < 88) {
+      e.myersT += dt;
+      if (e.myersT >= 2.5) {
+        e.myersT = 0;
+        e.myersStage = Math.min(3, e.myersStage + 1);
+        st.shake = 3;
+        Sound.sfx('myers');
+        if (e.myersStage === 1 && d) {
+          d.x = 296;
+          d.y = 150;
+        } else if (e.myersStage === 2 && d) {
+          d.x = 250;
+          d.y = 196;
+        } else if (e.myersStage === 3) {
+          if (d) d.hidden = true;
+          e.myersDone = true;
+          if (st.hearts < st.maxHearts) st.hearts = Math.min(st.maxHearts, st.hearts + 1);
+          toast(st, 'Ele nunca corre. Você sobreviveu.', 3.6);
+        }
+      }
+    } else {
+      e.myersT = 0;
+    }
+  }
+
+  // 6) Telefone da Cabana: toca periodicamente; atender revela uma frase.
+  if (!e.phoneRinging) {
+    e.phoneT -= dt;
+    if (e.phoneT <= 0) {
+      e.phoneRinging = true;
+      e.phoneT = 16 + Math.random() * 6;
+      Sound.sfx('ring');
+    }
+  }
+
+  // 8) Bloco "?" na Clareira: acerta com um golpe em andamento.
+  if (room.id === 'clareira' && !e.marioUsed && p.swing > 0) {
+    const block = GEEK_EGGS.mario;
+    const d = findGeekDecor(room, block.type);
+    if (dist(p.x, p.y, block.x, block.y) < 40) {
+      e.marioUsed = true;
+      if (d) d.bounceT = 0.35;
+      if (st.hearts < st.maxHearts) st.hearts = Math.min(st.maxHearts, st.hearts + 1);
+      Sound.sfx('bounce');
+      spawnParticles(st, block.x, block.y - 10, '#f2d94a', 14, { speed: 36, life: 0.8 });
+      spawnParticles(st, block.x, block.y - 10, '#ffffff', 6, { speed: 24, life: 0.6 });
+      toast(st, 'Bloco de interrogação! +1 coração.', 3);
+    }
+  }
+
+  // Animação de quique do bloco (sempre decai, em qualquer sala).
+  const marioBlock = findGeekDecor(world.rooms.clareira, GEEK_EGGS.mario.type);
+  if (marioBlock && marioBlock.bounceT > 0) {
+    marioBlock.bounceT = Math.max(0, marioBlock.bounceT - dt);
+  }
+}
+
+/* ------------------------------------------------------------------ */
 /* Atualização principal                                              */
 /* ------------------------------------------------------------------ */
 
@@ -2791,6 +3069,7 @@ function update(st, dt) {
   st.easter.sennaCd = Math.max(0, st.easter.sennaCd - dt);
   st.easter.verityCd = Math.max(0, st.easter.verityCd - dt);
   st.easter.rbianaCd = Math.max(0, st.easter.rbianaCd - dt);
+  st.easter.webCd = Math.max(0, st.easter.webCd - dt);
   p.swing = Math.max(0, p.swing - dt);
   p.swingCd = Math.max(0, p.swingCd - dt);
   p.heavyCd = Math.max(0, (p.heavyCd || 0) - dt);
@@ -2831,6 +3110,7 @@ function update(st, dt) {
     }
     updateEnemies(st, dt);
     updateBat(st, dt);
+    updateGeekEggs(st, dt);
   }
 
   updateProjectiles(st, dt);

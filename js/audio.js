@@ -641,6 +641,51 @@ class GameAudio {
       case 'toast':
         this.tone(1046, 0.05, 'square', 0.06);
         break;
+      case 'hiss':
+        // ovo rompendo: ruído curto + sweep grave
+        this.noise(0.35, 0.16, 1400);
+        this.tone(180, 0.4, 'sawtooth', 0.1, 55);
+        break;
+      case 'batman':
+        // whoosh grave de sinal no céu
+        this.noise(0.5, 0.12, 900);
+        this.tone(110, 0.55, 'sawtooth', 0.08, 55);
+        break;
+      case 'arc':
+        // reator carregando: seno subindo + ruído elétrico
+        this.tone(220, 0.35, 'sine', 0.14, 880);
+        this.noise(0.3, 0.08, 2600);
+        break;
+      case 'web':
+        // fio puxando: ruído subindo rápido
+        this.noise(0.18, 0.1, 3800);
+        this.tone(420, 0.14, 'triangle', 0.07, 1200);
+        break;
+      case 'myers':
+        // drone grave com queda
+        this.tone(75, 1.1, 'sawtooth', 0.14, 40);
+        this.tone(112, 0.8, 'sine', 0.08, 58, 0.05);
+        break;
+      case 'ring':
+        // dois bipes curtos de telefone
+        this.tone(880, 0.09, 'square', 0.09);
+        this.tone(880, 0.09, 'square', 0.09, null, 0.13);
+        break;
+      case 'phone':
+        // clique ao atender
+        this.tone(520, 0.04, 'square', 0.08);
+        this.tone(360, 0.05, 'square', 0.06, null, 0.05);
+        break;
+      case 'konami':
+        // arpejo ascendente de recompensa
+        [523, 659, 784, 1047, 1319].forEach((f, i) =>
+          this.tone(f, 0.14, 'triangle', 0.12, null, i * 0.07)
+        );
+        break;
+      case 'bounce':
+        // blip curto de bloco
+        this.tone(740, 0.06, 'square', 0.12, 990);
+        break;
       default:
         break;
     }

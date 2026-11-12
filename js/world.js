@@ -104,6 +104,23 @@ const EASTER_EGGS = {
   rbiana: { kind: 'rbiana', room: 'estudio_rbiana', x: 200, y: 154, interact: 64, cooldown: 5 },
   undertale: { kind: 'undertale', room: 'labirinto_profundo', x: 330, y: 230, interact: 40 },
   ultrakill: { kind: 'ultrakill', room: 'castelo', x: 340, y: 230, interact: 44 },
+  // Easter eggs geek com ação (os passivos ficam fora de EASTER_EGGS).
+  batman: { kind: 'batman', room: 'ruinas', x: 72, y: 120, interact: 48 },
+  panic: { kind: 'panic', room: 'cabana', x: 330, y: 222, interact: 40 },
+};
+
+/* Easter eggs geek de cultura pop, em pixel art original (sem logos ou
+   material protegido). Cada entrada define a sala, o tipo de decor e a área
+   reservada para o espalhamento procedural não nascer em cima. O de Konami
+   é global e não tem decor. */
+const GEEK_EGGS = {
+  alien: { room: 'cripta', type: 'egg_alien', x: 330, y: 232, r: 12, solid: { w: 16, h: 14 } },
+  batman: { room: 'ruinas', type: 'batsignal', x: 72, y: 120, r: 14, solid: { w: 18, h: 14 } },
+  ironman: { room: 'sala_tesouro', type: 'arc_reactor', x: 64, y: 120, r: 10, solid: { w: 14, h: 16 } },
+  spiderman: { room: 'caverna', type: 'web_anchor', x: 330, y: 90, r: 10, solid: null },
+  myers: { room: 'cemiterio', type: 'myers_figure', x: 330, y: 96, r: 12, solid: null },
+  panic: { room: 'cabana', type: 'phone_scare', x: 330, y: 222, r: 10, solid: { w: 14, h: 12 } },
+  mario: { room: 'clareira', type: 'question_block', x: 300, y: 210, r: 12, solid: { w: 16, h: 12 } },
 };
 
 /* Passagens escondidas até serem descobertas: cada sala do grid ganha uma
@@ -530,6 +547,14 @@ function buildDecor(room) {
     add('live_camera', 80, 215, { r: 12, solid: { w: 14, h: 10 } });
     add('pc_tower', 330, 220, { r: 10, solid: { w: 16, h: 20 } });
     return;
+  }
+
+  /* --- Easter eggs geek: decoração fixa antes do espalhamento --- */
+  for (const key in GEEK_EGGS) {
+    const egg = GEEK_EGGS[key];
+    if (egg.room !== room.id) continue;
+    room.reserved.push({ x: egg.x, y: egg.y, r: 28 });
+    add(egg.type, egg.x, egg.y, { r: egg.r, solid: egg.solid || undefined });
   }
 
   const theme = room.theme;

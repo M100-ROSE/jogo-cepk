@@ -175,6 +175,44 @@ completo.
   apenas formas, cores e nomes genéricos como referência. Não há sprites,
   logos, músicas ou frases protegidas copiadas de nenhum jogo ou marca.
 
+### Easter eggs geek (mecânicas variadas)
+
+Oito segredos espalhados pelo reino, cada um com um **mecanismo diferente**.
+Todos são formas, cores e sons originais — nenhum sprite ou logo de marca é
+usado.
+
+- **Ovo alienígena** — *passivo*: fique parado perto dele por alguns segundos.
+  O ovo eclode uma vez por jornada e concede +1 de dano por 6s.
+- **Sinal no céu** — *lanterna + AÇÃO*: examine o objeto com a lanterna para
+  acender o sinal e ganhar um escudo de 1 golpe.
+- **Reator arc** — *guarda*: mantenha a guarda (DEF) perto do reator por 1,5s
+  para ganhar escudo e +1 de dano por 8s, uma vez por jornada.
+- **Âncora de teia** — *rolamento*: role (C) perto da âncora para puxar a teia
+  e ganhar velocidade extra por 5s. Tem recarga e pode ser repetido.
+- **Figura silenciosa** — *olhar*: fique parado encarando a figura. A cada
+  2,5s ela avança um estágio; no último, você sobrevive e recupera 1 coração.
+- **Telefone** — *AÇÃO*: o telefone toca sozinho de tempos em tempos. Atenda
+  para ouvir uma frase de terror diferente a cada chamada.
+- **Código Konami** — *teclado*: digite ↑ ↑ ↓ ↓ ← → ← → B A durante o jogo
+  para +1 coração máximo. No celular, abra `CÓD` e digite `KONAMI`.
+- **Bloco de interrogação** — *golpe*: acerte o bloco com um ataque para
+  recuperar 1 coração, uma vez por jornada.
+
+<details>
+<summary>Salas e localizações (spoiler)</summary>
+
+- **Cripta** — ovo alienígena no canto sudeste.
+- **Ruínas Esquecidas** — sinal no canto noroeste.
+- **Sala do Tesouro Real** — reator arc no canto noroeste.
+- **Caverna Úmida** — âncora de teia no canto nordeste.
+- **Cemitério Antigo** — figura silenciosa no canto nordeste; ela se move
+  para perto conforme os estágios avançam.
+- **Cabana Abandonada** — telefone no canto sudeste.
+- **Clareira da Escola** — bloco de interrogação no canto sudeste.
+- O código Konami funciona em qualquer sala durante o jogo.
+
+</details>
+
 ### Estúdio da Rbiana (homenagem não oficial)
 
 O quarto secreto **Estúdio da Rbiana** homenageia **Rbiana** (também chamada de
