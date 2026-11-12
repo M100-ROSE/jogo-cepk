@@ -99,7 +99,7 @@ completo.
   - `/MYERS` → **Cemitério Antigo** (figura silenciosa)
   - `/PANIC` → **Cabana Abandonada** (telefone)
   - `/BLOCK` → **Clareira da Escola** (bloco de interrogação)
-  - `/RPO` → **Quarto do Jogador Nº 1** (TV CRT + minigame Adventure)
+  - `/RPO` ou `/ICE` → **Castelo de Gelo** (TV com Atari 2600 de verdade + recriação do minigame Adventure)
 - **Salas secretas**: as rachaduras são quase invisíveis. Só aparecem quando
   você chega bem perto da parede certa, e ficam ainda mais apagadas em salas
   escuras — use a lanterna e investigue com AÇÃO/Espaço.
@@ -130,9 +130,11 @@ completo.
   - **Sagrário**, parede sul → **Pódio de Senna**: pódio de três degraus,
     capacete e bandeiras quadriculadas. A homenagem dá um impulso de velocidade.
   - **Escadaria do Castelo**, parede leste → **Santuário de Richard**.
-  - **Ruínas Esquecidas**, parede norte → **Quarto do Jogador Nº 1**: um
-    cômodo aconchegante com TV CRT ligada e um pôster de chave. Aproxime-se da
-    TV e use AÇÃO/Espaço para jogar o minigame **Adventure** (detalhes abaixo).
+  - **Ruínas Esquecidas**, parede norte → **Castelo de Gelo**: um salão
+    congelado com uma **TV** sobre uma plataforma de gelo e jogadores sentados
+    diante dela. Aproxime-se da TV e use AÇÃO/Espaço para ligar o **Atari
+    2600** de verdade (ou a recriação, se você não tiver a ROM) — detalhes
+    abaixo.
   - Cada passagem só existe depois de revelada e precisa ser redescoberta em
     cada partida.
   </details>
@@ -248,33 +250,62 @@ voz, logo, thumbnail ou qualquer asset oficial: o quarto é uma **interpretaçã
 original em pixel art**, feita com formas genéricas e cores próprias. É uma
 homenagem **não oficial**, sem vínculo com a criadora.
 
-### Quarto do Jogador Nº 1 (homenagem a *Ready Player One*)
+### Castelo de Gelo (homenagem a *Ready Player One*)
 
-Atrás da parede norte das **Ruínas Esquecidas** fica o **Quarto do Jogador Nº
-1**: um cômodo aconchegante com pôster de chave, pilha de fitas, pufe e uma **TV
-CRT** ligada no centro. É uma homenagem original à cena do quarto em *Ready
-Player One* em que se joga *Adventure* para encontrar o ovo.
+Atrás da parede norte das **Ruínas Esquecidas** fica o **Castelo de Gelo**:
+uma sala congelada — plataforma de gelo com uma **TV** por cima, pilares e
+pingentes de gelo, pilhas de frost, cristais azuis e um pôster de chave na
+parede — recriando o clima de *Ready Player One*, em que se joga *Adventure*
+para encontrar o ovo.
 
-Aproxime-se da TV e use **AÇÃO/Espaço** para ligar o console. Dentro do
-minigame, **setas/WASD** (ou o joystick) movem o quadradinho, e **AÇÃO/Esc**
-sai a qualquer momento. A jornada tem três telas: atravesse a porta leste do
-castelo, desvie do dragão na caverna e toque no teto perto do canto direito para
-achar a passagem secreta; no quarto do ovo, encoste na chave.
+Aproxime-se da TV e use **AÇÃO/Espaço**. A TV abre o **Atari 2600 de verdade**
+(emulador **Stella** via EmulatorJS, core `atari2600`) rodando *Adventure*.
+Tanto lá quanto na recriação, o botão dourado **ACHEI O NOME DE ROBINETT!**
+registra o achado (veja "Recompensa" abaixo):
+
+- **ROM não vem no repositório** (direitos autorais). Coloque **a sua** cópia
+  em **`assets/game/adventure.bin`** (Atari 2600, NTSC, ~4 KB — backup pessoal
+  de um cartucho seu). Se o arquivo existir, a TV carrega a ROM sozinha assim
+  que você interage com ela. Veja `assets/game/README.md`.
+- **Sem a ROM** (ou jogando em `file://`, ou offline), a TV abre um seletor de
+  arquivo: escolha o `adventure.bin` direto no computador — funciona até em
+  `file://` e a ROM nunca sai da sua máquina.
+- **Precisa de internet** para baixar o emulador do CDN do EmulatorJS. Nada
+  mais é baixado junto.
+- Sem nenhuma ROM por perto, clique em **JOGAR A RECRIAÇÃO**: abre o minigame
+  in-canvas (recriação original, em pixel art própria, sem assets oficiais).
+  Esc sai a qualquer momento — e a recompensa é a mesma nos dois modos.
+- Dentro da TV de verdade, **`Esc` fecha** a TV; o jogo por baixo fica
+  congelado e nenhuma tecla vaza para o lobo enquanto ela está aberta.
+
+**Recompensa (uma vez por jornada):** achar a mensagem escondida por Warren
+Robinett em *Adventure* ("Created by Warren Robinett" — o primeiro easter egg
+da história dos jogos) vale **+1 coração máximo**. Toque em **ACHEI O NOME DE
+ROBINETT!** depois de encontrar a sala secreta dentro do jogo. O botão
+desativa depois de usado; sair e voltar não duplica a recompensa. Vale tanto
+para o emulador real quanto para a recriação.
 
 <details>
 <summary>Spoiler do minigame e recompensa</summary>
 
-O dragão da caverna não tira vidas: ele apenas devolve o quadradinho ao início.
-Ao pegar a chave do ovo, você recebe **+1 coração máximo** — uma vez por
-jornada. Sair e voltar ao minigame não duplica a recompensa. Na tela de vitória,
-AÇÃO/Esc retorna ao quarto.
+No modo recriação, **setas/WASD** (ou o joystick) movem o quadradinho, e
+**AÇÃO/Esc** sai a qualquer momento. A jornada tem três telas: atravesse a
+porta leste do castelo, desvie do dragão na caverna e toque no teto perto do
+canto direito para achar a passagem secreta; no quarto do ovo, encoste na
+chave. O dragão da caverna não tira vidas: ele apenas devolve o quadradinho
+ao início. Ao pegar a chave do ovo, você recebe **+1 coração máximo** — uma
+vez por jornada (a mesma chave `rpoKey` do emulador real; um coração ou outro,
+nunca os dois). Na tela de vitória, AÇÃO/Esc retorna ao Castelo de Gelo.
 
-Tudo é uma **homenagem não oficial**: o minigame e a sala são reinterpretações
-originais em pixel art, feitas com formas e cores próprias. Não há sprites,
-telas, músicas, logos ou qualquer asset oficial de *Adventure*, da Atari ou de
-*Ready Player One*.
+Tudo é uma **homenagem não oficial**: a recriação e a sala são
+reinterpretações originais em pixel art, feitas com formas, cores e nomes
+próprios. Não há sprites, telas, músicas, logos ou qualquer asset oficial de
+*Adventure*, da Atari ou de *Ready Player One*.
 
 </details>
+
+Use **`/ICE`** (o clássico `/RPO` continua valendo) no console secreto para se
+teleportar direto para o Castelo de Gelo.
 
 ### Playlist local (recomendada offline)
 
@@ -338,9 +369,11 @@ js/youtube.js         Mini-player e IFrame API do YouTube (modo 0717)
 js/assets.js          Atlas do jogador embutido em base64
 js/world.js           Grade 5x7, salas, itens, inimigos e decoração
 js/render.js          Renderização das salas, personagens e HUD
+js/emulator.js        TV do Castelo de Gelo: EmulatorJS/Stella (ou recriação)
 js/game.js            Loop, entrada, colisões, inimigos e estados do jogo
 assets/               Sprite original do lobo e arquivos-fonte
 assets/music/         Faixas locais da playlist (criar quando for usar)
+assets/game/          Coloque AQUI a sua adventure.bin (não vai para o repo; ver assets/game/README.md)
 shots/                Capturas de tela de teste
 ```
 

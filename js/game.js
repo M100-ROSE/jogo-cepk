@@ -174,6 +174,7 @@ const SECRET_COMMANDS = [
   { code: '/PANIC', room: 'cabana' },
   { code: '/BLOCK', room: 'clareira' },
   { code: '/RPO', room: 'sala_rpo' },
+  { code: '/ICE', room: 'sala_rpo' },
 ];
 const COMMAND_TIMEOUT_MS = 4000;
 
@@ -411,6 +412,7 @@ function createState() {
     easter: freshEasterFlags(),
     adv: freshAdvState(),
     hasLantern: false,
+    tvOpen: false,
     gateUnlocked: false,
     gateMsgCd: 0,
     keyTaken: false,
@@ -807,6 +809,8 @@ function grantSecretRoom(st, room, code) {
   // Se o minigame Adventure estiver aberto, fecha-o antes de teleportar
   // (evita o overlay do minigame sobre a sala de destino).
   if (st.adv && st.adv.active) exitAdventure(st);
+  // Mesmo cuidado com a TV do Castelo de Gelo (overlay da TV é HTML).
+  if (st.tvOpen && window.AtariTV) window.AtariTV.close();
   const targetRoom = st.world.rooms[room];
   if (!targetRoom) return false;
   st.room = targetRoom;
@@ -1042,6 +1046,17 @@ function toast(st, text, dur = 2.4) {
 }
 
 function handleKeyDown(e) {
+  // TV do Castelo de Gelo aberta: só o Escape fecha (via AtariTV); nenhuma
+  // outra tecla alcança o jogo por baixo do overlay.
+  const tvState = gameState;
+  if (tvState && tvState.tvOpen) {
+    if (e.key === 'Escape' && window.AtariTV) {
+      e.preventDefault();
+      window.AtariTV.close();
+    }
+    return;
+  }
+
   const code = e.code;
 
   const codeModal = document.getElementById('code-modal');
@@ -1157,6 +1172,8 @@ function handleKeyDown(e) {
 }
 
 function handleKeyUp(e) {
+  const tvState = gameState;
+  if (tvState && tvState.tvOpen) return;
   keys[e.code] = false;
 }
 
@@ -1885,8 +1902,14 @@ function tryEasterEgg(st) {
     }
 
     if (egg.kind === 'rpo') {
-      // A TV CRT abre o minigame Adventure (homenagem original).
-      startAdventure(st);
+      // A TV CRT abre a TV do Castelo de Gelo: emulador real (se houver ROM)
+      // ou a recriação in-canvas. Fallback direto caso o overlay falhe.
+      if (window.AtariTV && typeof window.AtariTV.open === 'function') {
+        releaseAllInput(); // evita teclas "presas" enquanto o overlay está aberto
+        window.AtariTV.open();
+      } else {
+        startAdventure(st);
+      }
       return true;
     }
   }
@@ -1953,6 +1976,8 @@ function advCenterY(a) {
   return a.y + ADV_SIZE / 2;
 }
 
+// Resolução por penetração mínima no eixo movido: corrige sempre que há
+// sobreposição, independente do sinal de `amount` (ou de amount == 0).
 function advMoveAxis(st, axis, amount) {
   const a = st.adv;
   const map = ADVENTURE.maps[a.screen];
@@ -1960,27 +1985,28 @@ function advMoveAxis(st, axis, amount) {
   if (axis === 'x') a.x += amount;
   else a.y += amount;
 
-  // Resolve cada parede separadamente no eixo movido (evita atravessar).
+  const size = ADV_SIZE;
   for (const w of map.walls) {
     if (
-      a.x + ADV_SIZE > w.x &&
+      a.x + size > w.x &&
       a.x < w.x + w.w &&
-      a.y + ADV_SIZE > w.y &&
+      a.y + size > w.y &&
       a.y < w.y + w.h
     ) {
       if (axis === 'x') {
-        if (amount > 0) a.x = w.x - ADV_SIZE;
-        else if (amount < 0) a.x = w.x + w.w;
-      } else if (amount > 0) {
-        a.y = w.y - ADV_SIZE;
-      } else if (amount < 0) {
-        a.y = w.y + w.h;
+        const pushLeft = a.x + size - w.x;
+        const pushRight = w.x + w.w - a.x;
+        a.x += pushLeft < pushRight ? -pushLeft : pushRight;
+      } else {
+        const pushUp = a.y + size - w.y;
+        const pushDown = w.y + w.h - a.y;
+        a.y += pushUp < pushDown ? -pushUp : pushDown;
       }
     }
   }
 
   a.x = clamp(a.x, 0, VW - ADV_SIZE);
-  a.y = clamp(a.y, 0, VH - ADV_SIZE);
+  a.y = clamp(a.y, 40, VH - ADV_SIZE - 18);
 }
 
 function updateAdventure(st, dt) {
@@ -2136,7 +2162,7 @@ function doAction(st) {
       mina_esquecida: { color: '#7fb0b8', accent: '#7fe6e6', msg: 'A rocha cedeu, revelando a Mina Esquecida!' },
       obby_roblox: { color: '#5adf6a', accent: '#5a86c9', msg: 'Um bloco se deslocou: bem-vindo ao Obby Perdido!' },
       estudio_rbiana: { color: '#e86aa0', accent: '#7fe6e6', msg: 'A parede da Cabana esconde o Estúdio da Rbiana!' },
-      sala_rpo: { color: '#7fe6e6', accent: '#e6bb4f', msg: 'A estante se abriu para o Quarto do Jogador Nº 1!' },
+      sala_rpo: { color: '#7fe6e6', accent: '#e6bb4f', msg: 'A parede congelada abriu caminho para o Castelo de Gelo!' },
     };
     const fx = revealFx[pass.target] || { color: '#c9c0a0', accent: '#e6c26a', msg: 'Uma passagem secreta se abriu!' };
 
@@ -2515,17 +2541,23 @@ function movePlayer(st, dt) {
   p.y = clamp(p.y, INNER.y + 13, INNER.b);
 }
 
+/* Resolução de colisão por penetração mínima no eixo informado: sempre
+   corrige a sobreposição, mesmo com velocidade 0 ou com o box parado
+   dentro do sólido (empurra para o lado mais próximo). Chamada depois de
+   mover cada eixo separadamente. */
 function resolveSolidsAxis(st, axis) {
   const p = st.player;
   const box = playerBox(p);
   for (const s of st.room.solids) {
     if (!rectsOverlap(box, s)) continue;
     if (axis === 'x') {
-      if (p.vx > 0) p.x = s.x - 7;
-      else if (p.vx < 0) p.x = s.x + s.w + 7;
+      const pushLeft = box.x + box.w - s.x;   // quanto empurrar para a esquerda
+      const pushRight = s.x + s.w - box.x;    // quanto empurrar para a direita
+      p.x += pushLeft < pushRight ? -pushLeft : pushRight;
     } else {
-      if (p.vy > 0) p.y = s.y;
-      else if (p.vy < 0) p.y = s.y + s.h + 13;
+      const pushUp = box.y + box.h - s.y;     // quanto empurrar para cima
+      const pushDown = s.y + s.h - box.y;     // quanto empurrar para baixo
+      p.y += pushUp < pushDown ? -pushUp : pushDown;
     }
     box.x = p.x - 7;
     box.y = p.y - 13;
@@ -3469,6 +3501,9 @@ function render(st, t) {
   ctx.imageSmoothingEnabled = false;
   ctx.clearRect(0, 0, VW, VH);
 
+  // TV do Castelo de Gelo aberta: o overlay HTML cobre a tela; não desenha nada por baixo.
+  if (st.tvOpen) return;
+
   if (st.mode === 'title') {
     drawTitle(ctx, st, t);
     return;
@@ -3590,27 +3625,33 @@ function loop(now) {
     initialized = true;
   }
 
-  readInput();
-
-  if (gameState.adv && gameState.adv.active) {
-    updateAdventure(gameState, dt);
-  } else if (gameState.mode === 'play') {
-    update(gameState, dt);
-  } else if (gameState.mode === 'cutscene') {
-    updateCutscene(gameState, dt);
+  if (gameState.tvOpen) {
+    // TV aberta: overlay HTML cobre a tela. Não atualiza o mundo nem o
+    // minigame; o estado fica congelado por trás do overlay.
   } else {
-    // animações de fundo continuam em overlays
-    if (gameState.toast.time > 0) gameState.toast.time = Math.max(0, gameState.toast.time - dt);
-    if (gameState.mode === 'title') {
-      gameState.shake = 0;
+    readInput();
+
+    if (gameState.adv && gameState.adv.active) {
+      updateAdventure(gameState, dt);
+    } else if (gameState.mode === 'play') {
+      update(gameState, dt);
+    } else if (gameState.mode === 'cutscene') {
+      updateCutscene(gameState, dt);
+    } else {
+      // animações de fundo continuam em overlays
+      if (gameState.toast.time > 0) gameState.toast.time = Math.max(0, gameState.toast.time - dt);
+      if (gameState.mode === 'title') {
+        gameState.shake = 0;
+      }
     }
   }
 
   // usado pelo áudio para retomar a trilha sintetizada só durante o jogo
   Sound.inGame =
-    gameState.mode === 'play' ||
-    gameState.mode === 'pause' ||
-    gameState.mode === 'cutscene';
+    !gameState.tvOpen &&
+    (gameState.mode === 'play' ||
+      gameState.mode === 'pause' ||
+      gameState.mode === 'cutscene');
 
   render(gameState, t);
   requestAnimationFrame(loop);

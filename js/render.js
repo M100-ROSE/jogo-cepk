@@ -90,6 +90,11 @@ const PAL = {
     floor: '#3b2a1e', floor2: '#2f2116', floor3: '#493527', path: '#4a3826', path2: '#3a2b1c',
     wall: '#665d74', wall2: '#4f4760', wall3: '#7a7286',
   },
+  ice: {
+    // Castelo de Gelo: piso de pedra clara/gelo azulado, blocos azul-roxo
+    floor: '#b8c9d8', floor2: '#a2b4c7', floor3: '#d3e0ea', path: '#8ea9bd', path2: '#7b93a8',
+    wall: '#2f3454', wall2: '#201f3d', wall3: '#4b548a',
+  },
 };
 
 const WALL_STYLE = {
@@ -114,6 +119,7 @@ const WALL_STYLE = {
   archive: 'wood',
   obby: 'brick',
   studio: 'wood',
+  ice: 'ice',
 };
 
 /* ------------------------------------------------------------------ */
@@ -228,6 +234,7 @@ const TALL_DECOR = new Set([
   'tape_shelf',
   'beanbag',
   'poster_key',
+  'ice_pillar',
 ]);
 
 function isTallDecor(d) {
@@ -433,6 +440,52 @@ function drawFloorTexture(c, room, p) {
     wl.addColorStop(1, 'rgba(255,206,140,0)');
     c.fillStyle = wl;
     c.fillRect(x, y, w, h);
+  } else if (theme === 'ice') {
+    // lajotas de pedra clara/gelo azulado-esbranquiçado com trincas
+    const size = 22;
+    for (let yy = y; yy < y + h; yy += size) {
+      for (let xx = x; xx < x + w; xx += size) {
+        const alt = ((xx - x) / size | 0) + ((yy - y) / size | 0);
+        px(c, xx, yy, size - 1, size - 1, alt % 3 === 0 ? p.floor3 : alt % 2 ? p.floor : p.floor2);
+      }
+    }
+    // juntas frias
+    c.fillStyle = 'rgba(24,38,58,0.38)';
+    for (let yy = y; yy < y + h; yy += size) c.fillRect(x, yy, w, 1);
+    for (let xx = x; xx < x + w; xx += size) c.fillRect(xx, y, 1, h);
+    // trincas serrilhadas (determinísticas)
+    c.strokeStyle = 'rgba(38,56,80,0.55)';
+    c.lineWidth = 1;
+    for (let i = 0; i < 9; i++) {
+      let cx0 = x + 18 + rng() * (w - 36);
+      let cy0 = y + 14 + rng() * (h - 28);
+      c.beginPath();
+      c.moveTo(Math.round(cx0), Math.round(cy0));
+      const segs = 3 + ((rng() * 3) | 0);
+      for (let sN = 0; sN < segs; sN++) {
+        cx0 += (rng() - 0.35) * 26;
+        cy0 += 6 + rng() * 12;
+        c.lineTo(Math.round(cx0), Math.round(cy0));
+      }
+      c.stroke();
+    }
+    // veios de gelo e brilhos
+    c.strokeStyle = 'rgba(255,255,255,0.35)';
+    for (let i = 0; i < 7; i++) {
+      const gx = x + rng() * w, gy = y + rng() * h, len = 6 + rng() * 12;
+      c.beginPath();
+      c.moveTo(Math.round(gx), Math.round(gy));
+      c.lineTo(Math.round(gx + len), Math.round(gy + (rng() - 0.5) * 4));
+      c.stroke();
+    }
+    speckle(c, x, y, w, h, '#e8f2f8', 80, rng, 1);
+    speckle(c, x, y, w, h, '#7f95ab', 45, rng, 1);
+    // reflexo frio central
+    const gl = c.createRadialGradient(200, 160, 10, 200, 160, 135);
+    gl.addColorStop(0, 'rgba(215,238,252,0.16)');
+    gl.addColorStop(1, 'rgba(215,238,252,0)');
+    c.fillStyle = gl;
+    c.fillRect(x, y, w, h);
   } else if (theme === 'treasure') {
     speckle(c, x, y, w, h, p.floor3, 120, rng, 1);
     speckle(c, x, y, w, h, p.floor2, 100, rng, 1);
@@ -492,6 +545,32 @@ function drawWallBand(c, room, p) {
       }
       c.fillStyle = 'rgba(0,0,0,0.3)';
       for (let xx = b.x; xx < b.x + b.w; xx += 24) c.fillRect(xx, b.y, 1, b.h);
+    } else if (style === 'ice') {
+      // blocos de gelo azul-escuro/roxo com reflexo superior, fendas e brilhos
+      const bh = 8, bw = 22;
+      for (let yy = b.y; yy < b.y + b.h; yy += bh) {
+        const off = ((yy - b.y) / bh) % 2 ? 11 : 0;
+        for (let xx = b.x - bw; xx < b.x + b.w; xx += bw) {
+          const alt = Math.abs(((xx + off) / bw) | 0) % 2;
+          px(c, xx + off, yy, bw - 1, bh - 1, alt ? p.wall : p.wall2);
+          px(c, xx + off, yy, bw - 1, 1, p.wall3);
+          px(c, xx + off, yy, 1, bh - 1, 'rgba(140,165,220,0.28)');
+        }
+      }
+      // fendas e reflexos congelados
+      const rng2 = mulberry32(hashString(room.id + '_icewall' + b.x + '_' + b.y));
+      c.strokeStyle = 'rgba(168,205,240,0.30)';
+      for (let i = 0; i < 6; i++) {
+        const fx = b.x + rng2() * b.w, fy = b.y + rng2() * b.h;
+        c.beginPath();
+        c.moveTo(Math.round(fx), Math.round(fy));
+        c.lineTo(Math.round(fx + (rng2() - 0.5) * 14), Math.round(fy + (rng2() - 0.5) * 6));
+        c.stroke();
+      }
+      c.fillStyle = 'rgba(220,240,255,0.22)';
+      for (let i = 0; i < 10; i++) {
+        c.fillRect(Math.round(b.x + rng2() * b.w), Math.round(b.y + rng2() * b.h), 2, 1);
+      }
     } else if (style === 'organic') {
       const rng = mulberry32(hashString(room.id + '_wall'));
       for (let i = 0; i < 70; i++) {
@@ -925,6 +1004,41 @@ function drawThemeExtras(c, room, p) {
     c.globalAlpha = 0.5;
     pixelEllipse(c, 200, 176, 96, 22, 'rgba(140,80,210,0.07)');
     pixelEllipse(c, 78, 208, 40, 14, 'rgba(255,200,140,0.06)');
+    c.globalAlpha = 1;
+  }
+
+  if (theme === 'ice') {
+    // leve degradê frio no topo
+    const tg = c.createLinearGradient(0, ROOM.y, 0, INNER.y + 52);
+    tg.addColorStop(0, 'rgba(12,18,38,0.55)');
+    tg.addColorStop(0.6, 'rgba(12,18,38,0.12)');
+    tg.addColorStop(1, 'rgba(12,18,38,0)');
+    c.fillStyle = tg;
+    c.fillRect(INNER.x, ROOM.y, INNER.r - INNER.x, INNER.y + 52 - ROOM.y);
+    // brilho frio vindo do alto-centro
+    const cg = c.createRadialGradient(200, INNER.y, 8, 200, INNER.y, 150);
+    cg.addColorStop(0, 'rgba(190,220,245,0.16)');
+    cg.addColorStop(1, 'rgba(190,220,245,0)');
+    c.fillStyle = cg;
+    c.fillRect(INNER.x, INNER.y, INNER.r - INNER.x, INNER.b - INNER.y);
+    // névoa fria escorrendo pelas bordas
+    c.globalAlpha = 0.10;
+    pixelEllipse(c, INNER.x + 38, INNER.b - 4, 70, 10, '#dfeaf2');
+    pixelEllipse(c, 200, INNER.b, 96, 9, '#e8f2f8');
+    pixelEllipse(c, INNER.r - 38, INNER.b - 4, 70, 10, '#dfeaf2');
+    c.globalAlpha = 0.06;
+    pixelEllipse(c, INNER.x + 6, 150, 24, 78, '#cfe0ec');
+    pixelEllipse(c, INNER.r - 6, 150, 24, 78, '#cfe0ec');
+    c.globalAlpha = 1;
+    // faíscas congeladas no piso (determinísticas)
+    const rngI = mulberry32(hashString(room.id + '_ice_sparkle'));
+    for (let i = 0; i < 22; i++) {
+      const sx = INNER.x + 10 + rngI() * (INNER.r - INNER.x - 20);
+      const sy = INNER.y + 22 + rngI() * (INNER.b - INNER.y - 32);
+      c.globalAlpha = 0.25 + rngI() * 0.5;
+      c.fillStyle = '#ffffff';
+      c.fillRect(Math.round(sx), Math.round(sy), 1, 1);
+    }
     c.globalAlpha = 1;
   }
 
@@ -2735,8 +2849,8 @@ function drawDecor(c, d, t, room) {
       const pulse = 0.5 + 0.5 * Math.sin(t * 2.2 + (d.seed || 0));
       const sd = d.seed || 0;
       pixelEllipse(c, x, y + 1, 10, 3, 'rgba(0,0,0,0.34)');
-      c.globalAlpha = 0.06 + pulse * 0.08;
-      pixelEllipse(c, x, y - 10, 15, 13, d.open ? '#8aff6a' : '#6a8a4a');
+      c.globalAlpha = 0.09 + pulse * 0.12;
+      pixelEllipse(c, x, y - 10, 15 + pulse * 3, 13, d.open ? '#8aff6a' : '#6a8a4a');
       c.globalAlpha = 1;
 
       c.save();
@@ -2758,6 +2872,22 @@ function drawDecor(c, d, t, room) {
             c.fillRect(Math.round(gx + off), -20 + yy, 1, 1);
           }
         }
+        // veias ácido pulsando na casca
+        c.strokeStyle = `rgba(138,255,106,${0.22 + pulse * 0.45})`;
+        c.lineWidth = 1;
+        const vein = (pts) => {
+          c.beginPath();
+          c.moveTo(pts[0][0], pts[0][1]);
+          for (let i = 1; i < pts.length; i++) c.lineTo(pts[i][0], pts[i][1]);
+          c.stroke();
+        };
+        vein([[-2, -19], [-4, -14], [-1, -10], [-4, -6]]);
+        vein([[3, -18], [1, -12], [4, -8]]);
+        vein([[0, -20], [0, -15], [-1, -11]]);
+        // coração quente brilhando entre as veias
+        c.globalAlpha = 0.25 + pulse * 0.55;
+        px(c, -1, -13, 2, 2, '#b0ff8a');
+        c.globalAlpha = 1;
         // pontas fechadas
         px(c, -6, -20, 3, 2, '#3a241e');
         px(c, -2, -21, 3, 2, '#4a3026');
@@ -2848,6 +2978,15 @@ function drawDecor(c, d, t, room) {
       pixelCircle(c, x, y, 4, '#8a7a2a');
       pixelCircle(c, x, y, 2, '#b8a63e');
       px(c, x - 2, y - 2, 2, 2, '#e6d27a');
+      // lente úmida: halo se o holofote está aceso (o feixe sai em drawRoomFX)
+      if (room && room.batLit) {
+        c.globalAlpha = 0.3 + 0.24 * Math.sin(t * 3.4 + x * 0.1);
+        pixelCircle(c, x, y, 8 + Math.sin(t * 3.4) * 1.5, '#ffe9a3');
+        c.globalAlpha = 1;
+      } else {
+        // gota de reflexo frio na lente apagada
+        px(c, x - 1, y + 2, 1, 1, '#fff6d0');
+      }
       // suporte da lente
       px(c, x - 3, y - 8, 4, 4, '#22222a');
       px(c, x - 3, y + 4, 4, 4, '#22222a');
@@ -2856,7 +2995,7 @@ function drawDecor(c, d, t, room) {
     case 'arc_reactor': {
       const pulse = 0.5 + 0.5 * Math.sin(t * 2.4 + (d.seed || 0));
       pixelEllipse(c, x, y + 1, 17, 4, 'rgba(0,0,0,0.35)');
-      c.globalAlpha = 0.08 + pulse * 0.12;
+      c.globalAlpha = 0.10 + pulse * 0.16;
       pixelEllipse(c, x, y, 22, 7, '#4ad0e8');
       pixelCircle(c, x, y - 22, 18, '#4ad0e8');
       c.globalAlpha = 1;
@@ -2868,14 +3007,22 @@ function drawDecor(c, d, t, room) {
       px(c, x - 12, y - 14, 24, 1, '#607078');
       px(c, x - 6, y - 18, 12, 4, '#2a3840');
       px(c, x - 6, y - 18, 12, 1, '#52626c');
-      // anel externo segmentado
+      // anel externo segmentado (girando)
       for (let i = 0; i < 8; i++) {
-        const a = (i / 8) * Math.PI * 2;
+        const a = (i / 8) * Math.PI * 2 + t * 1.5;
         const rx = x + Math.round(Math.cos(a) * 11);
         const ry = y - 22 + Math.round(Math.sin(a) * 11);
         px(c, rx - 2, ry - 1, 4, 2, i % 2 ? '#8a9aa4' : '#5a6a74');
         px(c, rx - 1, ry - 1, 2, 1, '#c8d4dc');
       }
+      // segmento destacado pulsando na varredura
+      const sa = Math.floor((((t * 1.5) / (Math.PI * 2)) * 8) % 8 + 8) % 8;
+      const ha = (sa / 8) * Math.PI * 2 + t * 1.5;
+      const hx = x + Math.round(Math.cos(ha) * 11);
+      const hy = y - 22 + Math.round(Math.sin(ha) * 11);
+      c.globalAlpha = 0.55 + 0.45 * Math.sin(t * 6);
+      px(c, hx - 2, hy - 1, 4, 2, '#dff4fa');
+      c.globalAlpha = 1;
       // núcleo ciano/azul-branco
       pixelCircle(c, x, y - 22, 8, '#123a46');
       pixelCircle(c, x, y - 22, 6, '#1e7a92');
@@ -2911,6 +3058,16 @@ function drawDecor(c, d, t, room) {
         c.quadraticCurveTo(x, py2 + 3, right, py2);
         c.stroke();
       }
+      // fios de seda cintilando (pontos de orvalho/luz)
+      for (let i = 0; i < 7; i++) {
+        const a = i * 2.399 + 1.3;
+        const rr = 4 + ((i * 5) % 12);
+        const gx = x + Math.cos(a) * rr + sway * 0.6;
+        const gy = y - 14 + Math.sin(a) * rr;
+        const tw = Math.max(0, Math.sin(t * 2.6 + i * 2.3));
+        if (tw > 0.72) px(c, gx, gy, 1, 1, '#ffffff');
+        else if (tw > 0.4) px(c, gx, gy, 1, 1, 'rgba(240,238,225,0.55)');
+      }
       // gancho preso na parede
       px(c, x - 4, y - 7, 8, 2, '#5a5148');
       px(c, x - 4, y - 5, 2, 4, '#4a4238');
@@ -2932,6 +3089,11 @@ function drawDecor(c, d, t, room) {
     case 'myers_figure': {
       if (!d.hidden) {
         const breath = Math.round(Math.sin(t * 1.1 + (d.seed || 0)) * 0.5);
+        const sway = Math.sin(t * 0.8 + (d.seed || 0) * 0.4) * 0.04;
+        c.save();
+        c.translate(x, y);
+        c.rotate(sway);
+        c.translate(-x, -y);
         pixelEllipse(c, x, y + 1, 11, 3, 'rgba(0,0,0,0.36)');
         // pernas e botas
         px(c, x - 6, y - 18, 4, 18, '#232a26');
@@ -2963,11 +3125,21 @@ function drawDecor(c, d, t, room) {
         px(c, x - 2, y - 37 + breath, 4, 1, '#9a8f80');
         // marca genérica na bochecha
         px(c, x - 4, y - 38 + breath, 2, 1, '#b5aa96');
+        // faca escondida ao lado (lâmina quase invisível no escuro)
+        px(c, x + 10, y - 12, 1, 6, '#2c3138');
+        px(c, x + 10, y - 12, 1, 1, '#4a525c');
+        if (Math.max(0, Math.sin(t * 1.6 + 2.1)) > 0.93) {
+          px(c, x + 10, y - 12, 1, 1, '#dfe8ff');
+        }
+        c.restore();
       }
       break;
     }
     case 'phone_scare': {
-      // telefone de parede antigo
+      // telefone de parede antigo com cúpula dupla
+      const ringing = (typeof gameState !== 'undefined' && gameState && gameState.easter && gameState.easter.phoneRinging);
+      const bellShake = ringing ? Math.round(Math.sin(t * 30) * 1) : 0;
+      const bellGlow = ringing ? 0.5 + 0.5 * Math.sin(t * 11) : 0;
       px(c, x - 13, y - 36, 26, 34, 'rgba(0,0,0,0.22)');
       px(c, x - 9, y - 34, 18, 32, '#2a1e18');
       px(c, x - 9, y - 34, 18, 2, '#4a3426');
@@ -3011,10 +3183,24 @@ function drawDecor(c, d, t, room) {
       // plaqueta
       px(c, x - 5, y - 28, 10, 3, '#5a4532');
       px(c, x - 3, y - 27, 6, 1, '#8a6a48');
+      // cúpula dupla da campainha no topo
+      px(c, x - 8 - bellShake, y - 40, 6, 4, '#4a3426');
+      px(c, x - 8 - bellShake, y - 40, 6, 1, '#7a5a3a');
+      px(c, x + 2 + bellShake, y - 40, 6, 4, '#4a3426');
+      px(c, x + 2 + bellShake, y - 40, 6, 1, '#7a5a3a');
+      px(c, x - 1, y - 42, 3, 2, '#241a14');
+      if (ringing) {
+        // ondas de toque pulsando das cúpulas
+        c.globalAlpha = 0.35 + bellGlow * 0.45;
+        pixelCircle(c, x - 6 - bellShake, y - 42, 2, '#ffe9a3');
+        pixelCircle(c, x + 6 + bellShake, y - 42, 2, '#ffe9a3');
+        c.globalAlpha = 1;
+      }
       break;
     }
     case 'question_block': {
       const bounce = d.bounceT > 0 ? -Math.sin((d.bounceT / 0.35) * Math.PI) * 6 : 0;
+      const twBoost = d.bounceT > 0 ? 1 : 0.4;
       pixelEllipse(c, x, y, 8, 2, 'rgba(0,0,0,0.28)');
       const by2 = y - 26 + bounce;
       // bloco amarelo com chanfros
@@ -3039,106 +3225,171 @@ function drawDecor(c, d, t, room) {
       q(3, 3, 1, 1);
       q(2, 4, 1, 1);
       q(2, 6, 1, 1);
+      // faíscas mágicas cintilando (mais brilhantes no quique)
+      for (let i = 0; i < 6; i++) {
+        const a = i * 1.047 + 0.6 + Math.floor(t * 2) * 0.3;
+        const rr = 12 + ((i * 37) % 6);
+        const sx = x + Math.cos(a) * rr;
+        const sy = by2 + 8 + Math.sin(a) * (rr - 4);
+        const tw = Math.max(0, Math.sin(t * 6 + i * 2.1)) * twBoost;
+        if (tw > 0.28) {
+          c.globalAlpha = tw;
+          px(c, sx, sy, 1, 1, '#fff6c8');
+        }
+      }
+      c.globalAlpha = 1;
       break;
     }
     case 'crt_tv': {
-      // TV CRT sobre móvel de madeira, console retrô e joystick no chão
+      // A CENA DO FILME: TV CRT pesada sobre gabinete de madeira,
+      // ATARI 2600 de madeira na frente (grão vertical, dois botões
+      // redondos, "2600" estilizado) e joystick no chão.
       const sd = d.seed || 0;
       const flick = 0.5 + 0.5 * Math.sin(t * 7.3 + sd);
       const boot = 0.5 + 0.5 * Math.sin(t * 2.1 + sd * 0.7);
-      pixelEllipse(c, x + 2, y + 1, 34, 6, 'rgba(0,0,0,0.38)');
+      const noiseSeed = Math.floor(t * 11) * 7919 + sd * 131;
+      const rngN = mulberry32(noiseSeed + 1);
 
-      // fios no chão saindo do console
-      c.strokeStyle = 'rgba(8,8,10,0.85)';
-      c.lineWidth = 1;
-      c.beginPath();
-      c.moveTo(x + 46, y - 1);
-      c.quadraticCurveTo(x + 52, y + 2, x + 60, y + 1);
-      c.stroke();
-      c.beginPath();
-      c.moveTo(x + 34, y - 1);
-      c.quadraticCurveTo(x + 29, y + 3, x + 23, y + 2);
-      c.stroke();
+      // sombra projetada na plataforma de gelo
+      pixelEllipse(c, x, y + 14, 46, 5, 'rgba(8,14,24,0.5)');
 
-      // móvel
-      px(c, x - 32, y - 19, 64, 17, '#5a3b24');
-      px(c, x - 32, y - 19, 64, 2, '#7d5734');
-      px(c, x - 32, y - 19, 2, 17, '#6a4628');
-      px(c, x + 30, y - 19, 2, 17, '#3d2717');
-      px(c, x - 32, y - 3, 64, 1, '#2e1d12');
-      px(c, x - 29, y - 2, 5, 2, '#3d2717');
-      px(c, x + 24, y - 2, 5, 2, '#3d2717');
-      // portas e gavetas
-      px(c, x - 28, y - 15, 25, 10, '#4a301c');
-      px(c, x - 27, y - 14, 23, 8, '#54371f');
-      px(c, x - 20, y - 10, 9, 2, '#8a6238');
-      px(c, x + 2, y - 15, 26, 10, '#4a301c');
-      px(c, x + 3, y - 14, 24, 8, '#54371f');
-      px(c, x + 12, y - 10, 9, 2, '#8a6238');
-      // veios da madeira
-      px(c, x - 30, y - 17, 18, 1, '#4a301c');
-      px(c, x + 6, y - 6, 20, 1, '#4a301c');
+      // gabinete de madeira (suporte da TV), grão vertical
+      px(c, x - 38, y - 2, 76, 15, '#4a301c');
+      px(c, x - 38, y - 2, 76, 2, '#6d4c2f');
+      px(c, x - 38, y - 2, 1, 15, '#5c3f27');
+      px(c, x + 37, y - 2, 1, 15, '#241610');
+      for (let gx = x - 34; gx < x + 36; gx += 6) {
+        px(c, gx, y, 1, 13, '#3f2817');
+        px(c, gx + 3, y, 1, 13, '#54371f');
+      }
+      // portas do gabinete com puxadores dourados
+      px(c, x - 33, y + 1, 30, 11, '#41291a');
+      px(c, x + 3, y + 1, 30, 11, '#41291a');
+      px(c, x - 18, y + 5, 5, 2, '#c9a24a');
+      px(c, x + 13, y + 5, 5, 2, '#c9a24a');
+      // pés do gabinete
+      px(c, x - 35, y + 13, 6, 2, '#241a12');
+      px(c, x + 29, y + 13, 6, 2, '#241a12');
 
-      // corpo do CRT
-      px(c, x - 23, y - 57, 46, 38, '#24272b');
-      px(c, x - 23, y - 57, 46, 2, '#4a4e54');
-      px(c, x - 23, y - 57, 2, 38, '#3a3e44');
-      px(c, x + 21, y - 57, 2, 38, '#141619');
-      px(c, x - 23, y - 21, 46, 2, '#101215');
-      // moldura interna da tela
-      px(c, x - 19, y - 53, 31, 29, '#111316');
-      px(c, x - 18, y - 52, 29, 27, '#0e2416');
+      // corpo pesado do CRT
+      px(c, x - 33, y - 46, 66, 45, '#1f2126');
+      px(c, x - 33, y - 46, 66, 2, '#3f434b');
+      px(c, x - 33, y - 46, 1, 45, '#2e3138');
+      px(c, x + 32, y - 46, 1, 45, '#0e1013');
+      px(c, x - 33, y - 3, 66, 2, '#0a0b0d');
+      // lateral esquerda de madeira (aparelho clássico), grão vertical
+      px(c, x - 33, y - 44, 5, 42, '#4a301c');
+      px(c, x - 33, y - 44, 5, 2, '#6d4c2f');
+      px(c, x - 31, y - 44, 1, 42, '#33200f');
+      px(c, x - 29, y - 44, 1, 42, '#54371f');
+      // lateral direita de madeira
+      px(c, x + 28, y - 44, 5, 42, '#4a301c');
+      px(c, x + 28, y - 44, 5, 2, '#6d4c2f');
+      px(c, x + 30, y - 44, 1, 42, '#33200f');
 
-      // tela de fósforo verde com flicker
+      // tela: moldura interna escura e vidro curvo
+      px(c, x - 26, y - 42, 42, 34, '#0c0d10');
+      px(c, x - 24, y - 40, 38, 30, '#111316');
+      // fósforo (adventure-esque, arte original)
       c.globalAlpha = 0.92 + flick * 0.08;
-      px(c, x - 18, y - 51, 29, 25, '#1c4a2a');
-      c.globalAlpha = 0.10 + flick * 0.10;
-      px(c, x - 18, y - 51, 29, 25, '#7aff9a');
+      px(c, x - 24, y - 40, 38, 30, '#14301e');
+      c.globalAlpha = 1;
+      // silhueta de castelo (eco do Adventure, arte original)
+      c.fillStyle = '#050c07';
+      c.fillRect(x - 18, y - 24, 26, 12);
+      c.fillRect(x - 15, y - 30, 5, 7);
+      c.fillRect(x - 3, y - 33, 6, 10);
+      c.fillRect(x + 7, y - 30, 5, 7);
+      c.fillRect(x - 15, y - 32, 1, 2);
+      c.fillRect(x - 12, y - 32, 1, 2);
+      c.fillRect(x - 9, y - 32, 1, 2);
+      c.fillRect(x - 3, y - 35, 1, 2);
+      c.fillRect(x, y - 35, 1, 2);
+      c.fillRect(x + 3, y - 35, 1, 2);
+      c.fillRect(x + 7, y - 32, 1, 2);
+      c.fillRect(x + 10, y - 32, 1, 2);
+      c.fillRect(x + 13, y - 32, 1, 2);
+      // portão do castelo
+      c.fillRect(x - 1, y - 18, 5, 6);
+      // chave dourada cintilando na tela
+      c.globalAlpha = 0.35 + boot * 0.65;
+      px(c, x + 9, y - 37, 1, 1, '#ffd24a');
+      c.globalAlpha = 1;
+      // estática animada (pontos por frame)
+      for (let i = 0; i < 46; i++) {
+        const nx = x - 24 + Math.floor(rngN() * 38);
+        const ny = y - 40 + Math.floor(rngN() * 30);
+        c.globalAlpha = 0.14 + rngN() * 0.3;
+        px(c, nx, ny, 1, 1, rngN() < 0.25 ? '#b8ffcc' : '#5a8a68');
+      }
       c.globalAlpha = 1;
       // scanlines
-      for (let sy = 0; sy < 25; sy += 3) {
-        px(c, x - 18, y - 51 + sy, 29, 1, 'rgba(3,16,8,0.5)');
+      for (let sy = 0; sy < 30; sy += 3) {
+        px(c, x - 24, y - 40 + sy, 38, 1, 'rgba(3,14,7,0.5)');
       }
-      // banda de varredura
-      const scanY = y - 51 + Math.floor((t * 16 + sd) % 25);
-      px(c, x - 18, scanY, 29, 1, 'rgba(200,255,210,0.12)');
-      // reflexo
-      px(c, x - 15, y - 48, 7, 1, 'rgba(225,255,230,0.22)');
-      px(c, x - 16, y - 46, 1, 4, 'rgba(225,255,230,0.10)');
-      // "P1" e ponto de luz
-      drawText(c, 'P1', x - 5, y - 45, { scale: 1, color: '#9affb4' });
-      c.globalAlpha = 0.55 + boot * 0.45;
-      px(c, x + 6, y - 34, 2, 2, '#eaffd0');
+      // banda de varredura descendo
+      const scanY = y - 40 + Math.floor((t * 17 + sd * 3) % 30);
+      px(c, x - 24, scanY, 38, 1, 'rgba(190,255,205,0.13)');
+      // reflexo de vidro
+      px(c, x - 21, y - 37, 9, 1, 'rgba(230,255,235,0.25)');
+      px(c, x - 22, y - 35, 1, 5, 'rgba(230,255,235,0.12)');
+      // vazamento de luz da tela no gabinete
+      c.globalAlpha = 0.10 + flick * 0.08;
+      pixelEllipse(c, x - 7, y + 1, 24, 3, '#bdf0c8');
       c.globalAlpha = 1;
 
-      // painel de controles à direita
-      px(c, x + 12, y - 51, 7, 25, '#1c1e22');
-      pixelCircle(c, x + 15, y - 48, 2, '#55595f');
-      pixelCircle(c, x + 15, y - 48, 1, '#2a2d31');
-      pixelCircle(c, x + 15, y - 43, 2, '#55595f');
-      pixelCircle(c, x + 15, y - 43, 1, '#2a2d31');
-      for (let i = 0; i < 3; i++) px(c, x + 14, y - 38 + i * 2, 4, 1, '#0c0d10');
-      c.globalAlpha = 0.25 + boot * 0.75;
-      px(c, x + 14, y - 31, 2, 1, '#c94a3a');
+      // painel de controle do CRT (lateral direita do vidro)
+      px(c, x + 17, y - 40, 10, 30, '#17191d');
+      // dois botões de canal/volume redondos do CRT
+      pixelCircle(c, x + 22, y - 34, 2, '#55595f');
+      pixelCircle(c, x + 22, y - 34, 1, '#26292e');
+      pixelCircle(c, x + 22, y - 27, 2, '#55595f');
+      pixelCircle(c, x + 22, y - 27, 1, '#26292e');
+      // grade do alto-falante
+      for (let i = 0; i < 4; i++) px(c, x + 18, y - 20 + i * 2, 8, 1, '#0a0b0d');
+      // LED standby âmbar
+      c.globalAlpha = 0.3 + boot * 0.7;
+      px(c, x + 20, y - 12, 3, 1, '#ffb84a');
       c.globalAlpha = 1;
 
-      // console retrô no chão
-      px(c, x + 30, y - 7, 22, 7, '#121317');
-      px(c, x + 30, y - 7, 22, 1, '#2e3038');
-      px(c, x + 33, y - 5, 10, 1, '#050506');
-      px(c, x + 45, y - 5, 3, 2, '#8a2a22');
-      px(c, x + 31, y - 2, 1, 2, '#0a0a0c');
-      px(c, x + 49, y - 2, 1, 2, '#0a0a0c');
+      // ATARI 2600: corpo de madeira com grão vertical, dois botões
+      // redondos, texto "2600" (sem copiar a marca oficial)
+      px(c, x - 34, y + 2, 68, 10, '#14100c');
+      px(c, x - 34, y + 2, 68, 2, '#26201a');
+      px(c, x - 34, y + 4, 68, 7, '#5a3b24');
+      // grão vertical da madeira
+      for (let gx = x - 31; gx < x + 33; gx += 4) {
+        px(c, gx, y + 4, 1, 7, '#3f2817');
+        px(c, gx + 2, y + 4, 1, 7, '#6d4c2f');
+      }
+      // slot de cartucho no topo
+      px(c, x - 10, y + 2, 20, 2, '#0c0a08');
+      px(c, x - 10, y + 2, 20, 1, '#332a22');
+      // placa central com "2600"
+      px(c, x - 13, y + 5, 26, 5, '#241a12');
+      px(c, x - 13, y + 5, 26, 1, '#3a2b1c');
+      drawText(c, '2600', x, y + 5, { scale: 1, color: '#e8c86a', align: 'center', outline: '#120c06' });
+      // dois botões redondos (chave de dificuldade)
+      pixelCircle(c, x - 24, y + 8, 3, '#0e0b08');
+      pixelCircle(c, x - 24, y + 8, 2, '#2a251f');
+      px(c, x - 25, y + 6, 2, 1, '#5f584e');
+      pixelCircle(c, x + 24, y + 8, 3, '#0e0b08');
+      pixelCircle(c, x + 24, y + 8, 2, '#2a251f');
+      px(c, x + 23, y + 6, 2, 1, '#5f584e');
+      // pezinhos do console
+      px(c, x - 32, y + 11, 3, 2, '#0c0a08');
+      px(c, x + 29, y + 11, 3, 2, '#0c0a08');
 
-      // joystick
-      px(c, x + 37, y - 12, 3, 5, '#1a1b20');
-      px(c, x + 35, y - 14, 7, 2, '#26282e');
-      px(c, x + 38, y - 16, 1, 2, '#3a3d46');
-      px(c, x + 35, y - 14, 7, 1, '#3c4048');
+      // joystick de 1 botão no chão, à esquerda
+      px(c, x - 52, y + 7, 10, 5, '#121317');
+      px(c, x - 52, y + 7, 10, 1, '#2e3038');
+      px(c, x - 49, y + 3, 3, 5, '#1a1b20');
+      px(c, x - 50, y + 1, 5, 3, '#c94a3a');
+      px(c, x - 50, y + 1, 5, 1, '#ff8a6a');
       c.strokeStyle = 'rgba(8,8,10,0.9)';
       c.beginPath();
-      c.moveTo(x + 37, y - 6);
-      c.quadraticCurveTo(x + 33, y - 2, x + 33, y - 1);
+      c.moveTo(x - 42, y + 9);
+      c.quadraticCurveTo(x - 36, y + 12, x - 33, y + 11);
       c.stroke();
       break;
     }
@@ -3240,41 +3491,242 @@ function drawDecor(c, d, t, room) {
       break;
     }
     case 'poster_key': {
-      // pôster abstrato de parede com chave dourada
+      // Pintura congelada em moldura gelada: uma CHAVE DOURADA dentro
+      // (dica visual de Adventure — arte original)
       const sd = d.seed || 0;
-      const pulse = 0.5 + 0.5 * Math.sin(t * 2 + sd);
-      px(c, x - 20, y - 48, 40, 42, '#33291d');
-      px(c, x - 20, y - 48, 40, 2, '#4a3b28');
-      px(c, x - 18, y - 46, 36, 38, '#c9a24a');
-      px(c, x - 17, y - 45, 34, 36, '#1e2433');
-      // formas geométricas
-      px(c, x - 14, y - 42, 12, 10, '#2c3548');
-      px(c, x + 2, y - 44, 10, 8, '#4a7a7a');
-      px(c, x + 1, y - 35, 8, 8, '#b8433a');
-      px(c, x - 13, y - 30, 9, 9, '#6a5a8a');
-      // linhas de horizonte
-      px(c, x - 14, y - 18, 28, 1, '#3a4a62');
-      px(c, x - 14, y - 15, 20, 1, '#2e3a50');
-      px(c, x - 14, y - 12, 24, 1, '#2e3a50');
+      const pulse = 0.5 + 0.5 * Math.sin(t * 2.1 + sd);
+      // sombra na parede
+      px(c, x - 22, y - 50, 42, 45, 'rgba(6,10,18,0.42)');
+      // moldura de gelo: blocos congelados
+      px(c, x - 21, y - 49, 40, 44, '#7fa8c8');
+      px(c, x - 20, y - 48, 38, 2, '#dcebf5');
+      px(c, x - 21, y - 49, 3, 44, '#a9c8de');
+      px(c, x + 18, y - 49, 3, 44, '#557a9e');
+      px(c, x - 21, y - 6, 40, 2, '#3f5f7e');
+      // fendas na moldura
+      px(c, x - 14, y - 49, 1, 4, '#3f5f7e');
+      px(c, x + 9, y - 7, 1, 4, '#2c405a');
+      // pintura embaçada (céu roxo e horizonte)
+      px(c, x - 18, y - 46, 34, 40, '#182033');
+      const sky = c.createLinearGradient(0, y - 46, 0, y - 6);
+      sky.addColorStop(0, '#1d2b45');
+      sky.addColorStop(0.55, '#2c3d5e');
+      sky.addColorStop(1, '#3a2c40');
+      c.fillStyle = sky;
+      c.fillRect(Math.round(x - 18), Math.round(y - 46), 34, 40);
+      // silhueta de castelo distante na pintura
+      px(c, x - 18, y - 26, 34, 1, '#241f30');
+      c.fillStyle = '#10141f';
+      c.fillRect(x - 13, y - 32, 6, 7);
+      c.fillRect(x - 4, y - 35, 8, 10);
+      c.fillRect(x + 6, y - 31, 5, 6);
+      c.fillRect(x - 4, y - 37, 1, 2);
+      c.fillRect(x, y - 37, 1, 2);
+      c.fillRect(x + 3, y - 37, 1, 2);
+      // lua pálida na pintura
+      pixelCircle(c, x + 11, y - 41, 2, '#c9d6e2');
       // halo da chave
-      c.globalAlpha = 0.06 + pulse * 0.08;
-      pixelCircle(c, x + 2, y - 25, 10, '#e6bb4f');
+      c.globalAlpha = 0.10 + pulse * 0.16;
+      pixelCircle(c, x, y - 25, 10 + pulse * 2, '#ffd24a');
       c.globalAlpha = 1;
-      // chave dourada pixelada
-      pixelCircle(c, x - 6, y - 27, 4, '#e6bb4f');
-      px(c, x - 7, y - 29, 3, 1, '#ffe9a3');
-      px(c, x - 6, y - 27, 2, 2, '#1e2433');
-      px(c, x - 2, y - 28, 11, 2, '#e6bb4f');
-      px(c, x - 2, y - 28, 11, 1, '#ffe9a3');
-      px(c, x + 7, y - 26, 2, 3, '#c9a24a');
-      px(c, x + 3, y - 26, 2, 2, '#c9a24a');
-      // etiqueta pequena
-      drawText(c, 'P1', x, y - 17, { scale: 1, color: '#d8cfb0', align: 'center' });
-      // cantos/alfinetes
-      px(c, x - 18, y - 46, 2, 2, '#ffe9a3');
-      px(c, x + 16, y - 46, 2, 2, '#ffe9a3');
-      px(c, x - 18, y - 10, 2, 2, '#8a6a2a');
-      px(c, x + 16, y - 10, 2, 2, '#8a6a2a');
+      // CHAVE DOURADA pintada no centro
+      pixelCircle(c, x - 5, y - 27, 4, '#a97c25');
+      pixelCircle(c, x - 5, y - 27, 3, '#e6bb4f');
+      px(c, x - 6, y - 29, 2, 1, '#ffe9a3');
+      px(c, x - 5, y - 27, 2, 2, '#241f30');
+      px(c, x - 1, y - 28, 11, 2, '#e6bb4f');
+      px(c, x - 1, y - 28, 11, 1, '#ffe9a3');
+      px(c, x + 8, y - 26, 2, 3, '#c9a24a');
+      px(c, x + 5, y - 26, 1, 2, '#c9a24a');
+      // cintilação percorrendo a chave
+      const glint = Math.floor((t * 2.6 + sd) % 3);
+      if (glint === 0) px(c, x - 6, y - 29, 1, 1, '#ffffff');
+      else if (glint === 1) px(c, x + 2, y - 28, 1, 1, '#ffffff');
+      else px(c, x + 8, y - 26, 1, 1, '#ffffff');
+      // gelo escorrendo pelos cantos e gotas congeladas
+      px(c, x - 18, y - 46, 8, 2, '#dcebf5');
+      px(c, x - 18, y - 46, 2, 7, '#dcebf5');
+      px(c, x + 10, y - 46, 8, 2, '#c3d5e2');
+      px(c, x + 16, y - 46, 2, 6, '#c3d5e2');
+      px(c, x - 18, y - 9, 6, 3, '#a9c0d4');
+      px(c, x + 12, y - 9, 6, 3, '#8fa9bd');
+      px(c, x - 13, y - 39, 1, 4, '#b8d4e6');
+      px(c, x + 14, y - 37, 1, 5, '#a9c8de');
+      // assinatura minúscula do "pintor"
+      px(c, x + 8, y - 11, 6, 1, '#5a6f8e');
+      break;
+    }
+    case 'ice_platform': {
+      // plataforma de gelo em camadas (laje sob a TV)
+      const sd = d.seed || 0;
+      const rng = mulberry32(sd + 1013);
+      pixelEllipse(c, x, y + 2, 74, 7, 'rgba(10,18,30,0.45)');
+      // pingentes sob a laje
+      for (const [ix, il] of [[-44, 5], [-12, 7], [24, 4], [48, 6]]) {
+        px(c, x + ix, y + 1, 2, il, '#b8d4e6');
+        px(c, x + ix, y + 1, 1, 1, '#eaf6ff');
+      }
+      // laje em camadas: base estreita, topo largo
+      px(c, x - 50, y - 3, 100, 4, '#3f5f7e');
+      px(c, x - 54, y - 7, 108, 4, '#557a9e');
+      px(c, x - 59, y - 11, 118, 5, '#7fa8c8');
+      px(c, x - 63, y - 15, 126, 4, '#a9c8de');
+      // faceta superior e brilho 1px no topo
+      px(c, x - 63, y - 15, 126, 2, '#dcebf5');
+      px(c, x - 63, y - 16, 126, 1, '#ffffff');
+      // contorno frio
+      c.fillStyle = '#16283a';
+      c.fillRect(Math.round(x - 50), Math.round(y + 1), 100, 1);
+      c.fillRect(Math.round(x - 63), Math.round(y - 15), 1, 12);
+      c.fillRect(Math.round(x + 62), Math.round(y - 15), 1, 12);
+      // bolhas congeladas
+      for (let i = 0; i < 12; i++) {
+        const bx = x - 56 + rng() * 112;
+        const by = y - 13 + rng() * 11;
+        const br = rng() < 0.3 ? 2 : 1;
+        px(c, bx, by, br, br, 'rgba(234,246,255,0.8)');
+        if (br === 2) px(c, bx, by, 1, 1, '#ffffff');
+      }
+      // trincas na laje
+      c.strokeStyle = '#2c405a';
+      c.lineWidth = 1;
+      for (const [sx2, sy2, len] of [[-38, -13, 12], [-4, -8, 15], [28, -12, 10]]) {
+        c.beginPath();
+        c.moveTo(x + sx2, y + sy2);
+        c.lineTo(x + sx2 + len * 0.5, y + sy2 + 2);
+        c.lineTo(x + sx2 + len, y + sy2 + 1);
+        c.stroke();
+      }
+      break;
+    }
+    case 'ice_pillar': {
+      // coluna alta de gelo cristalino com brilho frio atrás
+      c.globalAlpha = 0.14;
+      pixelCircle(c, x, y - 26, 26, '#bcd8ea');
+      c.globalAlpha = 0.09;
+      pixelCircle(c, x, y - 26, 34, '#8fb8d2');
+      c.globalAlpha = 1;
+      pixelEllipse(c, x, y + 1, 15, 5, 'rgba(10,18,30,0.4)');
+      // corpo facetado
+      px(c, x - 8, y - 44, 16, 44, '#5f88a8');
+      px(c, x - 8, y - 44, 6, 44, '#9fc3dd');
+      px(c, x - 2, y - 44, 4, 44, '#7fa8c8');
+      px(c, x + 2, y - 44, 6, 44, '#3f5f7e');
+      // topo cristalino pontudo
+      px(c, x - 6, y - 48, 12, 4, '#7fa8c8');
+      px(c, x - 6, y - 48, 4, 4, '#b8d8ea');
+      px(c, x - 3, y - 52, 7, 4, '#9fc3dd');
+      px(c, x - 1, y - 55, 3, 3, '#dcebf5');
+      px(c, x, y - 57, 1, 2, '#ffffff');
+      // contorno frio
+      c.fillStyle = '#16283a';
+      c.fillRect(Math.round(x - 9), Math.round(y - 44), 1, 44);
+      c.fillRect(Math.round(x + 8), Math.round(y - 44), 1, 44);
+      // veios e fenda
+      c.strokeStyle = 'rgba(220,240,255,0.55)';
+      c.beginPath(); c.moveTo(x - 3, y - 38); c.lineTo(x - 4, y - 24); c.lineTo(x - 2, y - 8); c.stroke();
+      c.strokeStyle = '#2c405a';
+      c.beginPath(); c.moveTo(x + 4, y - 34); c.lineTo(x + 2, y - 18); c.stroke();
+      // pontos de luz congelada
+      px(c, x - 4, y - 36, 1, 1, '#ffffff');
+      px(c, x + 2, y - 22, 1, 1, '#eaf6ff');
+      px(c, x - 1, y - 10, 1, 1, '#ffffff');
+      // neve acumulada na base
+      pixelEllipse(c, x, y, 11, 3, '#dcebf5');
+      break;
+    }
+    case 'icicle': {
+      // pingentes pendurados no topo (sem sólido)
+      const spikes = [[-11, 13], [0, 19], [11, 10]];
+      for (const [off, len] of spikes) {
+        const w = len > 15 ? 5 : 4;
+        px(c, x + off - (w >> 1), y - 10, w, 4, '#8fb2ca');
+        for (let i = 0; i < len; i += 4) {
+          const ww = Math.max(1, w - Math.floor((i / len) * w));
+          px(c, x + off - (ww >> 1), y - 6 + i, ww, Math.min(4, len - i), i % 8 ? '#c9dfeb' : '#e8f4fb');
+        }
+        px(c, x + off, y - 6 + len, 1, 2, '#f4fbff');
+        px(c, x + off - 1, y - 8, 1, 3, '#ffffff');
+      }
+      break;
+    }
+    case 'frost_pile': {
+      // monte baixo de neve com sombras frias e brilhos
+      const sd = d.seed || 0;
+      const rng = mulberry32(sd + 717);
+      pixelEllipse(c, x, y + 1, 23, 4, 'rgba(10,18,30,0.35)');
+      pixelEllipse(c, x, y - 3, 20, 7, '#a9c0d4');
+      pixelEllipse(c, x, y - 5, 17, 6, '#c3d5e2');
+      pixelEllipse(c, x - 2, y - 7, 12, 5, '#dcebf5');
+      pixelEllipse(c, x - 4, y - 8, 6, 2, '#ffffff');
+      // sombras frias
+      px(c, x + 6, y - 4, 7, 2, '#7f99b2');
+      px(c, x - 12, y - 3, 5, 2, '#8fa9bd');
+      // pontos de brilho
+      for (let i = 0; i < 6; i++) {
+        px(c, x - 14 + rng() * 28, y - 9 + rng() * 6, 1, 1, '#ffffff');
+      }
+      break;
+    }
+    case 'crystal_blue': {
+      // cristal azul-turquesa brilhante (halo animado em drawRoomFX)
+      c.globalAlpha = 0.16;
+      pixelCircle(c, x, y - 8, 12, '#3ad0c0');
+      c.globalAlpha = 1;
+      pixelEllipse(c, x, y + 1, 13, 4, 'rgba(10,18,30,0.4)');
+      // cristais laterais menores
+      const shard = (sx, hgt, hw) => {
+        c.fillStyle = '#0e4a4a';
+        c.beginPath();
+        c.moveTo(sx, y - hgt - 2);
+        c.lineTo(sx + hw, y);
+        c.lineTo(sx - hw, y);
+        c.closePath();
+        c.fill();
+        c.fillStyle = '#2fb8ae';
+        c.beginPath();
+        c.moveTo(sx, y - hgt);
+        c.lineTo(sx + hw - 2, y - 1);
+        c.lineTo(sx - hw + 2, y - 1);
+        c.closePath();
+        c.fill();
+        px(c, sx - 1, y - hgt + 2, 1, Math.max(1, Math.floor(hgt * 0.5)), '#59e0d0');
+      };
+      shard(x - 8, 11, 3);
+      shard(x + 8, 13, 3);
+      // cristal central (mais alto)
+      c.fillStyle = '#0e4a4a';
+      c.beginPath();
+      c.moveTo(x, y - 24);
+      c.lineTo(x + 6, y - 11);
+      c.lineTo(x + 4, y);
+      c.lineTo(x - 4, y);
+      c.lineTo(x - 6, y - 11);
+      c.closePath();
+      c.fill();
+      c.fillStyle = '#2fb8ae';
+      c.beginPath();
+      c.moveTo(x, y - 22);
+      c.lineTo(x + 4, y - 11);
+      c.lineTo(x + 3, y - 1);
+      c.lineTo(x - 3, y - 1);
+      c.lineTo(x - 4, y - 11);
+      c.closePath();
+      c.fill();
+      c.fillStyle = '#59e0d0';
+      c.beginPath();
+      c.moveTo(x, y - 22);
+      c.lineTo(x + 2, y - 11);
+      c.lineTo(x + 1, y - 2);
+      c.lineTo(x - 1, y - 2);
+      c.lineTo(x - 2, y - 11);
+      c.closePath();
+      c.fill();
+      px(c, x - 1, y - 18, 1, 6, '#a8fff0');
+      // faíscas
+      px(c, x - 1, y - 21, 1, 1, '#ffffff');
+      px(c, x + 4, y - 10, 1, 1, '#d8fffa');
+      px(c, x - 5, y - 8, 1, 1, '#d8fffa');
       break;
     }
     default:
@@ -4045,10 +4497,11 @@ function drawRoomFX(c, room, t) {
     const bx = bd ? bd.x : 72;
     const by = bd ? bd.y : 120;
     const flick = 0.5 + 0.5 * Math.sin(t * 3.4 + bx * 0.1);
-    const tx = bx + 82;
-
-    // feixe de luz pálido até a faixa superior da parede
-    c.globalAlpha = 0.08 + flick * 0.05;
+    const sweep = Math.sin(t * 0.62) * 26;
+    const tx = bx + 82 + sweep;
+    // feixe de luz pálido até a faixa superior da parede (oscila)
+    const pulse = 0.72 + 0.28 * Math.sin(t * 1.9 + 0.7);
+    c.globalAlpha = (0.08 + flick * 0.05) * pulse;
     c.fillStyle = '#ffe9a3';
     c.beginPath();
     c.moveTo(bx - 2, by - 2);
@@ -4058,7 +4511,7 @@ function drawRoomFX(c, room, t) {
     c.closePath();
     c.fill();
     // raios internos
-    c.globalAlpha = 0.12 + flick * 0.08;
+    c.globalAlpha = (0.12 + flick * 0.08) * pulse;
     c.strokeStyle = '#fff6d0';
     c.lineWidth = 1;
     c.beginPath();
@@ -4073,9 +4526,66 @@ function drawRoomFX(c, room, t) {
     c.globalAlpha = 1;
 
     // silhueta de morcego projetada
-    c.globalAlpha = 0.38 + flick * 0.22;
+    c.globalAlpha = (0.38 + flick * 0.22) * pulse;
     drawBatProjection(c, tx, INNER.y - 7, 1);
     c.globalAlpha = 1;
+  }
+
+  // Castelo de Gelo: neve caindo, névoa fria no chão e brilho ocasional
+  if (room.theme === 'ice') {
+    const r1 = (n) => { const v = Math.sin(n * 127.1 + 311.7) * 43758.5453; return v - Math.floor(v); };
+    const SPAN = INNER.b - INNER.y + 26;
+    // flocos determinísticos (50-70), caindo com leve balanço
+    for (let i = 0; i < 64; i++) {
+      const baseX = INNER.x + r1(i * 3 + 1) * (INNER.r - INNER.x);
+      const speed = 9 + r1(i * 3 + 2) * 15;
+      const sway = 4 + r1(i * 3 + 3) * 7;
+      const fx = baseX + Math.sin(t * 0.9 + i * 1.7) * sway;
+      const fy = INNER.y - 8 + ((t * speed + r1(i * 7 + 5) * SPAN) % SPAN);
+      const sz = i % 6 === 0 ? 2 : 1;
+      c.globalAlpha = 0.35 + r1(i * 5 + 3) * 0.45;
+      px(c, fx, fy, sz, sz, '#f2f8ff');
+      if (i % 9 === 0) {
+        px(c, fx - 1, fy, 1, 1, '#ffffff');
+        px(c, fx + sz, fy, 1, 1, '#ffffff');
+      }
+    }
+    c.globalAlpha = 1;
+    // névoa fria rastejando no chão (deriva alternada)
+    for (let i = 0; i < 3; i++) {
+      const span = INNER.r - INNER.x + 150;
+      const off = (t * (6 + i * 3) + i * 140) % span;
+      const fx = i % 2 ? INNER.x + off - 75 : INNER.r - off + 75;
+      c.globalAlpha = 0.06 + i * 0.02;
+      pixelEllipse(c, fx, INNER.b - 5 - i * 5, 76, 9, '#d7e6ef');
+    }
+    c.globalAlpha = 1;
+    // brilho ocasional varrendo o gelo (envelope raro)
+    const env = Math.pow(Math.max(0, Math.sin(t * 0.55 + 1.3)), 8);
+    if (env > 0.02) {
+      const sweep = ((t * 46) % (INNER.r - INNER.x + 340)) - 170;
+      c.globalAlpha = 0.11 * env;
+      c.fillStyle = '#eaf6ff';
+      c.beginPath();
+      c.moveTo(sweep, INNER.y);
+      c.lineTo(sweep + 62, INNER.y);
+      c.lineTo(sweep + 12, INNER.b);
+      c.lineTo(sweep - 50, INNER.b);
+      c.closePath();
+      c.fill();
+      c.globalAlpha = 1;
+    }
+    // cristais pulsando (base estática no cache; halo animado aqui)
+    for (const cd of room.decor) {
+      if (cd.type !== 'crystal_blue') continue;
+      const pulse = 0.5 + 0.5 * Math.sin(t * 2.6 + (cd.seed || 0));
+      c.globalAlpha = 0.09 + pulse * 0.15;
+      pixelCircle(c, cd.x, cd.y - 8, 11 + pulse * 3, '#4ae0d0');
+      c.globalAlpha = 0.3 + pulse * 0.45;
+      px(c, cd.x - 1, cd.y - 15, 1, 1, '#d8fffa');
+      px(c, cd.x + 3, cd.y - 9, 1, 1, '#d8fffa');
+      c.globalAlpha = 1;
+    }
   }
 
   // telefone tocando na cabana

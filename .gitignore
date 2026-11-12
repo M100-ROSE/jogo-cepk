@@ -1,0 +1,6 @@
+# ROMs de Atari não são distribuídas (direitos autorais).
+# Coloque a sua cópia legalizada em assets/game/ — veja assets/game/README.md
+assets/game/*.bin
+assets/game/*.a26
+assets/game/*.rom
+assets/game/*.zip

@@ -32,6 +32,49 @@
       </div>
     </div>
 
+    <div
+      id="atari-overlay"
+      aria-hidden="true"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="atari-title"
+    >
+      <div id="atari-shell">
+        <div id="atari-titlebar">
+          <span id="atari-title">ATARI 2600 — ADVENTURE</span>
+          <button id="atari-close" class="atari-btn atari-btn--red" type="button">SAIR</button>
+        </div>
+
+        <div id="atari-chooser">
+          <p class="atari-lead">
+            Esta TV roda o <strong>Adventure</strong> de verdade. Para isso, o emulador
+            (Stella, via EmulatorJS) precisa da <strong>sua</strong> cópia legalizada do
+            jogo — a ROM <em>não é distribuída</em> neste repositório por direitos autorais.
+          </p>
+          <p id="atari-status" role="status">&nbsp;</p>
+          <div class="atari-actions">
+            <button id="atari-pick" class="atari-btn" type="button">SELECIONAR ADVENTURE.BIN</button>
+            <button id="atari-recreation" class="atari-btn atari-btn--green" type="button">JOGAR A RECRIAÇÃO</button>
+          </div>
+          <p class="atari-fineprint">
+            ROM não vem no repositório. Coloque a sua em
+            <code>assets/game/adventure.bin</code> (Atari 2600, NTSC) para jogar direto,
+            ou selecione o arquivo — funciona até em <code>file://</code>.
+          </p>
+        </div>
+
+        <div id="atari-playing">
+          <div id="atari-player-frame"></div>
+          <div id="atari-bar">
+            <button id="atari-found" class="atari-btn" type="button">ACHEI O NOME DE ROBINETT!</button>
+            <button id="atari-exit" class="atari-btn atari-btn--red" type="button">SAIR DA TV</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <input type="file" id="atari-file" hidden accept=".bin,.a26,.rom" />
+
     <div id="code-modal" aria-hidden="true">
       <form id="code-form" autocomplete="off">
         <label for="code-input">Código secreto</label>
@@ -71,6 +114,7 @@
     <script src="js/assets.js"></script>
     <script src="js/world.js"></script>
     <script src="js/render.js"></script>
+    <script src="js/emulator.js"></script>
     <script src="js/game.js"></script>
   </body>
 </html>

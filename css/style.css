@@ -493,3 +493,349 @@ body.touch #yt-music {
   right: 10px;
   bottom: 158px;
 }
+
+/* ============================================================
+   Overlay da TV (Atari 2600) — Castelo de Gelo
+   A sala_rpo termina numa TV de tubo de madeira; este overlay
+   amplia o "gabinete" em tela cheia sobre o canvas do jogo.
+   display:none por padrao — js/emulator.js alterna para flex/block.
+   ============================================================ */
+
+/* ---- Fundo: sala escurecida + vinheta + scanlines de ambiente ---- */
+#atari-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  align-items: center;
+  justify-content: center;
+  padding: 12px;
+  box-sizing: border-box;
+  overflow: hidden;
+  background:
+    radial-gradient(130% 100% at 50% 38%, rgba(30, 38, 52, 0.62) 0%, rgba(8, 10, 15, 0.9) 58%, rgba(2, 3, 6, 0.96) 100%),
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.02) 0 2px, transparent 2px 6px),
+    #04060a;
+  box-shadow: inset 0 0 150px rgba(0, 0, 0, 0.9);
+}
+
+/* ---- Gabinete: madeira macica + filete dourado gasto ---- */
+#atari-shell {
+  position: relative;
+  width: min(92vw, 760px);
+  max-height: 88vh;
+  overflow: auto;
+  box-sizing: border-box;
+  padding: clamp(14px, 2.6vh, 24px) clamp(16px, 4vw, 32px) clamp(16px, 3vh, 26px);
+  text-align: center;
+  color: #efe6c8;
+  font-family: "Trebuchet MS", "Trebuchet", "Segoe UI", sans-serif;
+  border: 4px solid #1c1008;
+  border-radius: 14px;
+  background:
+    linear-gradient(180deg, rgba(255, 226, 138, 0.22) 0%, rgba(255, 226, 138, 0.05) 10%, rgba(0, 0, 0, 0) 18%),
+    repeating-linear-gradient(90deg, rgba(255, 236, 176, 0.06) 0 2px, rgba(0, 0, 0, 0.06) 2px 5px, rgba(255, 236, 176, 0.03) 5px 11px),
+    linear-gradient(180deg, #6f452a 0%, #57341f 38%, #402515 72%, #2c190d 100%);
+  box-shadow:
+    inset 0 2px 0 rgba(255, 224, 150, 0.4),
+    inset 0 -8px 14px rgba(0, 0, 0, 0.55),
+    0 0 0 3px #a8843a,
+    0 26px 60px rgba(0, 0, 0, 0.75);
+}
+
+/* parafusos nos cantos do gabinete */
+#atari-shell::before {
+  content: "";
+  position: absolute;
+  inset: 7px;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 12px 12px, #d9c07a 0 2.3px, #241300 2.9px 4.6px, transparent 5.3px),
+    radial-gradient(circle at calc(100% - 12px) 12px, #d9c07a 0 2.3px, #241300 2.9px 4.6px, transparent 5.3px),
+    radial-gradient(circle at 12px calc(100% - 12px), #d9c07a 0 2.3px, #241300 2.9px 4.6px, transparent 5.3px),
+    radial-gradient(circle at calc(100% - 12px) calc(100% - 12px), #d9c07a 0 2.3px, #241300 2.9px 4.6px, transparent 5.3px);
+}
+
+/* vidro sujo / scanlines por cima do gabinete */
+#atari-shell::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 10px;
+  pointer-events: none;
+  background: repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.16) 0 1px, transparent 1px 4px);
+  opacity: 0.6;
+}
+
+/* ---- Barra de titulo do gabinete ---- */
+#atari-titlebar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding-bottom: 12px;
+  margin-bottom: 14px;
+  border-bottom: 2px solid rgba(255, 210, 122, 0.28);
+}
+
+#atari-title {
+  font-size: clamp(17px, 3.4vw, 24px);
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #ffd24a;
+  text-shadow:
+    0 0 8px rgba(255, 210, 74, 0.55),
+    0 0 30px rgba(255, 170, 60, 0.35),
+    2px 2px 0 #241300;
+}
+
+/* LED de power, pisca devagar */
+#atari-title::before {
+  content: "";
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  margin-right: 10px;
+  border-radius: 50%;
+  vertical-align: 1px;
+  background: radial-gradient(circle at 35% 35%, #fff3b0, #ffb01e 55%, #7a4a00 100%);
+  box-shadow: 0 0 9px rgba(255, 176, 30, 0.9);
+  animation: atari-led 1.6s steps(2, start) infinite;
+}
+
+@keyframes atari-led {
+  0%, 60% { opacity: 1; }
+  61%, 100% { opacity: 0.35; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #atari-title::before { animation: none; }
+}
+
+/* ---- Texto do chooser ---- */
+.atari-lead {
+  margin: 0 auto 10px;
+  max-width: 52ch;
+  font-size: clamp(13px, 1.9vw, 15px);
+  line-height: 1.55;
+  color: #cfc6a0;
+}
+
+.atari-lead strong,
+.atari-lead em {
+  color: #efe0ad;
+}
+
+#atari-status {
+  min-height: 1.3em;
+  margin: 4px 0 8px;
+  font-size: clamp(12px, 1.8vw, 14px);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: #ffb056;
+  text-shadow: 0 0 10px rgba(255, 176, 86, 0.45);
+}
+
+.atari-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: center;
+  margin-top: 10px;
+}
+
+.atari-fineprint {
+  margin: 14px auto 0;
+  max-width: 56ch;
+  font-size: clamp(10px, 1.6vw, 12px);
+  line-height: 1.5;
+  color: #b9ac86;
+}
+
+.atari-fineprint code {
+  display: inline-block;
+  padding: 1px 7px;
+  border-radius: 4px;
+  border: 1px solid rgba(255, 210, 122, 0.35);
+  background: #241608;
+  color: #ffe9a3;
+  font-family: Consolas, "Courier New", monospace;
+  font-size: 0.95em;
+}
+
+/* ---- Botoes chunky estilo "controle de fliperama" ---- */
+.atari-btn {
+  font-family: "Trebuchet MS", "Trebuchet", "Segoe UI", sans-serif;
+  font-weight: 700;
+  font-size: clamp(12px, 1.9vw, 15px);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #241300;
+  background: linear-gradient(180deg, #ffe9a3 0%, #f0c55c 45%, #c9a24a 100%);
+  border: 3px solid #241300;
+  border-radius: 6px;
+  padding: 12px 18px;
+  cursor: pointer;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.55);
+  box-shadow:
+    0 4px 0 #241300,
+    0 10px 20px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  transition: transform 90ms steps(2, end), box-shadow 90ms steps(2, end), filter 140ms ease;
+}
+
+.atari-btn:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.07) saturate(1.12);
+  box-shadow:
+    0 6px 0 #241300,
+    0 14px 26px rgba(0, 0, 0, 0.55),
+    inset 0 1px 0 rgba(255, 255, 255, 0.7);
+}
+
+.atari-btn:active {
+  transform: translateY(3px);
+  filter: brightness(0.94);
+  box-shadow:
+    0 1px 0 #241300,
+    0 4px 10px rgba(0, 0, 0, 0.6),
+    inset 0 2px 5px rgba(0, 0, 0, 0.35);
+}
+
+.atari-btn:focus-visible {
+  outline: 2px solid #ffd24a;
+  outline-offset: 3px;
+}
+
+.atari-btn--green {
+  color: #0e2806;
+  background: linear-gradient(180deg, #ddffb2 0%, #8fd654 45%, #47943a 100%);
+  border-color: #12290a;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.5);
+  box-shadow:
+    0 4px 0 #12290a,
+    0 10px 20px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6);
+}
+
+.atari-btn--green:hover {
+  box-shadow:
+    0 6px 0 #12290a,
+    0 14px 26px rgba(0, 0, 0, 0.55),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6);
+}
+
+.atari-btn--green:active {
+  box-shadow:
+    0 1px 0 #12290a,
+    0 4px 10px rgba(0, 0, 0, 0.6),
+    inset 0 2px 5px rgba(0, 0, 0, 0.4);
+}
+
+.atari-btn--red {
+  color: #2e0d08;
+  background: linear-gradient(180deg, #ffb6a6 0%, #e06552 45%, #96392e 100%);
+  border-color: #290a08;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.4);
+  box-shadow:
+    0 4px 0 #290a08,
+    0 10px 20px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.55);
+}
+
+.atari-btn--red:hover {
+  box-shadow:
+    0 6px 0 #290a08,
+    0 14px 26px rgba(0, 0, 0, 0.55),
+    inset 0 1px 0 rgba(255, 255, 255, 0.55);
+}
+
+.atari-btn--red:active {
+  box-shadow:
+    0 1px 0 #290a08,
+    0 4px 10px rgba(0, 0, 0, 0.6),
+    inset 0 2px 5px rgba(0, 0, 0, 0.4);
+}
+
+/* ---- Modo "jogando": frame do aparelho + scanlines ---- */
+#atari-playing {
+  display: none; /* js alterna para block */
+}
+
+#atari-player-frame {
+  position: relative;
+  width: min(92vw, 680px);
+  max-width: 100%;
+  aspect-ratio: 4 / 3;
+  margin: 4px auto 0;
+  padding: 10px;
+  box-sizing: border-box;
+  overflow: hidden;
+  border: 6px solid #1c1008;
+  border-radius: 16px;
+  background:
+    repeating-linear-gradient(90deg, rgba(255, 236, 176, 0.05) 0 2px, rgba(0, 0, 0, 0.07) 2px 6px),
+    linear-gradient(180deg, #54311d 0%, #38200f 55%, #20100a 100%);
+  box-shadow:
+    inset 0 2px 0 rgba(255, 224, 150, 0.3),
+    inset 0 -8px 16px rgba(0, 0, 0, 0.65),
+    0 0 0 3px #a8843a,
+    0 18px 44px rgba(0, 0, 0, 0.7);
+}
+
+/* scanlines sutis sobre a "tela" do aparelho */
+#atari-player-frame::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.3) 0 1px, transparent 1px 4px);
+  opacity: 0.55;
+}
+
+/* #atari-game e criado em runtime pelo js/emulator.js */
+#atari-game {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border-radius: 8px;
+  background: #000;
+}
+
+#atari-game canvas {
+  max-width: 100%;
+  max-height: 100%;
+}
+
+#atari-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: center;
+  margin-top: 12px;
+}
+
+/* ---- Telas pequenas: aperta o gabinete, nunca estoura 92vw/88vh ---- */
+@media (max-width: 480px) {
+  #atari-shell {
+    padding: 12px 10px 14px;
+    border-radius: 12px;
+  }
+  #atari-titlebar {
+    justify-content: center;
+    text-align: center;
+  }
+  .atari-btn {
+    padding: 10px 12px;
+    letter-spacing: 0.08em;
+  }
+  #atari-player-frame {
+    border-width: 4px;
+    border-radius: 12px;
+  }
+}

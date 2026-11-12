@@ -58,7 +58,7 @@ const ROOM_META = {
   mina_esquecida: { name: 'Mina Esquecida', theme: 'cave', short: 'Mina' },
   obby_roblox: { name: 'Obby Perdido', theme: 'obby', short: 'Obby' },
   estudio_rbiana: { name: 'Estúdio da Rbiana', theme: 'studio', short: 'Rbiana' },
-  sala_rpo: { name: 'Quarto do Jogador Nº 1', theme: 'cabin', short: 'Jogador 1' },
+  sala_rpo: { name: 'Castelo de Gelo', theme: 'ice', short: 'Gelo' },
 };
 
 /* Ligações bloqueadas (sem porta) */
@@ -600,10 +600,20 @@ function buildDecor(room) {
   }
 
   if (room.id === 'sala_rpo') {
-    add('crt_tv', 200, 150, { r: 30, solid: { w: 36, h: 18 } });
-    add('tape_shelf', 320, 120, { r: 14, solid: { w: 26, h: 12 } });
-    add('beanbag', 90, 220, { r: 14 });
-    add('poster_key', 290, 80, { r: 0 });
+    // Castelo de Gelo (homenagem a Ready Player One): os jogadores sentados
+    // diante de uma TV sobre plataforma de gelo.
+    add('ice_platform', 200, 178, { r: 44, solid: { w: 120, h: 20 } });
+    add('crt_tv', 200, 148, { r: 30, solid: { w: 40, h: 18 } });
+    add('ice_pillar', 58, 96, { r: 12, solid: { w: 16, h: 16 } });
+    add('ice_pillar', 342, 96, { r: 12, solid: { w: 16, h: 16 } });
+    add('icicle', 120, 46, { r: 0 });
+    add('icicle', 200, 46, { r: 0 });
+    add('icicle', 280, 46, { r: 0 });
+    add('frost_pile', 46, 252, { r: 14 });
+    add('frost_pile', 354, 252, { r: 14 });
+    add('crystal_blue', 90, 210, { r: 8 });
+    add('crystal_blue', 310, 210, { r: 8 });
+    add('poster_key', 290, 84, { r: 0 });
     return;
   }
 
