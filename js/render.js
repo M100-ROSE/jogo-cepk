@@ -2939,64 +2939,70 @@ function drawDecor(c, d, t, room) {
       break;
     }
     case 'batsignal': {
-      // projetor antigo: lente no ponto de ancoragem, tripé abaixo
-      pixelEllipse(c, x + 1, y + 34, 20, 5, 'rgba(0,0,0,0.32)');
-      c.strokeStyle = '#2a2a30';
-      c.lineWidth = 2;
+      // emblema amarelo pendurado por cordão curto (arte própria, sem logo)
+      const R = 10;
+      // feixe de luz fino vindo de cima (opcional, sutil)
+      c.globalAlpha = 0.07 + 0.02 * Math.sin(t * 1.7 + (d.seed || 0));
+      c.fillStyle = '#ffe9a3';
       c.beginPath();
-      c.moveTo(x - 2, y + 8);
-      c.lineTo(x - 14, y + 34);
-      c.moveTo(x + 2, y + 8);
-      c.lineTo(x + 13, y + 34);
-      c.moveTo(x, y + 8);
-      c.lineTo(x + 2, y + 35);
-      c.stroke();
-      c.strokeStyle = '#4a4a54';
+      c.moveTo(x - 3, y - R);
+      c.lineTo(x - 8, y - R - 66);
+      c.lineTo(x + 8, y - R - 66);
+      c.closePath();
+      c.fill();
+      c.globalAlpha = 1;
+      // cordão curto até um prego acima
+      c.strokeStyle = '#3a3a44';
+      c.lineWidth = 1;
       c.beginPath();
-      c.moveTo(x - 2, y + 8);
-      c.lineTo(x - 13, y + 33);
+      c.moveTo(x + 6, y - R - 12);
+      c.lineTo(x, y - R + 1);
       c.stroke();
-      // pés do tripé
-      px(c, x - 17, y + 33, 7, 2, '#1a1a1f');
-      px(c, x + 10, y + 33, 7, 2, '#1a1a1f');
-      px(c, x, y + 34, 5, 2, '#1a1a1f');
-      // corpo de metal
-      px(c, x - 21, y - 9, 19, 18, '#2a2a30');
-      px(c, x - 21, y - 9, 19, 3, '#4a4a54');
-      px(c, x - 21, y + 6, 19, 3, '#17171c');
-      px(c, x - 23, y - 6, 3, 12, '#3a3a44');
-      px(c, x - 16, y - 5, 1, 10, '#22222a');
-      // alça pequena
-      px(c, x - 15, y - 14, 9, 2, '#55555e');
-      px(c, x - 16, y - 13, 2, 4, '#3a3a44');
-      px(c, x - 7, y - 13, 2, 3, '#3a3a44');
-      // interruptor
-      px(c, x - 16, y + 1, 3, 3, '#8a3a2a');
-      // lente amarela apagada
-      pixelCircle(c, x, y, 7, '#3a3a42');
-      pixelCircle(c, x, y, 6, '#6a5a22');
-      pixelCircle(c, x, y, 4, '#8a7a2a');
-      pixelCircle(c, x, y, 2, '#b8a63e');
-      px(c, x - 2, y - 2, 2, 2, '#e6d27a');
-      // lente úmida: halo se o holofote está aceso (o feixe sai em drawRoomFX)
-      if (room && room.batLit) {
-        c.globalAlpha = 0.3 + 0.24 * Math.sin(t * 3.4 + x * 0.1);
-        pixelCircle(c, x, y, 8 + Math.sin(t * 3.4) * 1.5, '#ffe9a3');
-        c.globalAlpha = 1;
-      } else {
-        // gota de reflexo frio na lente apagada
-        px(c, x - 1, y + 2, 1, 1, '#fff6d0');
-      }
-      // suporte da lente
-      px(c, x - 3, y - 8, 4, 4, '#22222a');
-      px(c, x - 3, y + 4, 4, 4, '#22222a');
+      px(c, x + 5, y - R - 14, 3, 2, '#22222a'); // prego
+      px(c, x + 6, y - R - 14, 1, 1, '#55555e');
+      // halo pulsando (mais forte com o sinal aceso)
+      const lit = room && room.batLit;
+      c.globalAlpha = lit ? 0.45 + 0.2 * Math.sin(t * 3.4 + x * 0.1) : 0.2 + 0.1 * Math.sin(t);
+      pixelCircle(c, x, y, R + 4 + (lit ? Math.sin(t * 3.4) * 1.5 : 0), '#ffd94a');
+      c.globalAlpha = 1;
+      // círculo do sinal: 2 tons
+      pixelCircle(c, x, y, R, '#ffd94a');
+      pixelCircle(c, x, y, R - 2, '#ffeb8a');
+      // silhueta do morcego (pixel, simétrica, arte própria)
+      const B = '#1a1a1f';
+      const tri = (ax, ay, bx, by, cx2, cy2) => {
+        c.fillStyle = B;
+        c.beginPath();
+        c.moveTo(ax, ay);
+        c.lineTo(bx, by);
+        c.lineTo(cx2, cy2);
+        c.closePath();
+        c.fill();
+      };
+      tri(x - 1, y - 2, x - 7, y - 5, x - 5, y + 1); // asa esq (tri superior)
+      tri(x - 1, y + 1, x - 5, y + 1, x - 2, y + 4); // asa esq (tri inferior)
+      tri(x + 1, y - 2, x + 7, y - 5, x + 5, y + 1); // asa dir (tri superior)
+      tri(x + 1, y + 1, x + 5, y + 1, x + 2, y + 4); // asa dir (tri inferior)
+      px(c, x - 2, y - 5, 1, 2, B); // orelha esq
+      px(c, x + 1, y - 5, 1, 2, B); // orelha dir
+      px(c, x - 2, y - 3, 5, 2, B); // cabeça
+      px(c, x - 1, y - 1, 3, 4, B); // corpo
+      px(c, x, y + 3, 1, 1, B); // ponta
       break;
     }
     case 'arc_reactor': {
       const pulse = 0.5 + 0.5 * Math.sin(t * 2.4 + (d.seed || 0));
+      // cabo fino desligando o pedestal para um canto (dica de máquina)
+      px(c, x - 32, y - 4, 17, 4, '#22303a');
+      px(c, x - 32, y - 4, 17, 1, '#33424c');
+      // sombra no chão
       pixelEllipse(c, x, y + 1, 17, 4, 'rgba(0,0,0,0.35)');
+      // piscina de luz ciano no chão (pulsando)
+      c.globalAlpha = 0.12 + pulse * 0.18;
+      pixelEllipse(c, x, y + 1, 24, 5, '#4ad0e8');
+      c.globalAlpha = 1;
+      // halo do núcleo
       c.globalAlpha = 0.10 + pulse * 0.16;
-      pixelEllipse(c, x, y, 22, 7, '#4ad0e8');
       pixelCircle(c, x, y - 22, 18, '#4ad0e8');
       c.globalAlpha = 1;
       // pedestal baixo
@@ -3023,11 +3029,77 @@ function drawDecor(c, d, t, room) {
       c.globalAlpha = 0.55 + 0.45 * Math.sin(t * 6);
       px(c, hx - 2, hy - 1, 4, 2, '#dff4fa');
       c.globalAlpha = 1;
-      // núcleo ciano/azul-branco
+      // 3 bobinas externas com arcos em zigzag amarelo-branco (nas picos de pulsação)
+      const zig = Math.max(0, Math.sin(t * 6));
+      for (let i = 0; i < 3; i++) {
+        const a = -Math.PI / 2 + (i * Math.PI * 2) / 3 + Math.sin(t * 0.5) * 0.08;
+        const bx = x + Math.cos(a) * 16;
+        const by = y - 22 + Math.sin(a) * 16;
+        px(c, bx - 1, by - 1, 3, 3, '#5a6a74'); // bobina
+        px(c, bx, by - 1, 1, 1, '#c8d4dc');
+        if (zig > 0.15) {
+          const ix = x + Math.cos(a) * 11; // anel externo
+          const iy = y - 22 + Math.sin(a) * 11;
+          const mx = (bx + ix) / 2;
+          const my = (by + iy) / 2;
+          const nx = Math.cos(a + Math.PI / 2);
+          const ny = Math.sin(a + Math.PI / 2);
+          c.globalAlpha = zig * zig * 0.9;
+          c.strokeStyle = '#ffd94a';
+          c.lineWidth = 2;
+          c.beginPath();
+          c.moveTo(bx, by);
+          c.lineTo(mx + nx * 2, my + ny * 2);
+          c.lineTo(mx - nx * 2, my - ny * 2);
+          c.lineTo(ix, iy);
+          c.stroke();
+          c.strokeStyle = '#ffffff';
+          c.lineWidth = 1;
+          c.beginPath();
+          c.moveTo(bx, by);
+          c.lineTo(mx + nx * 2, my + ny * 2);
+          c.lineTo(mx - nx * 2, my - ny * 2);
+          c.lineTo(ix, iy);
+          c.stroke();
+          c.globalAlpha = 1;
+        }
+      }
+      // núcleo escuro
       pixelCircle(c, x, y - 22, 8, '#123a46');
-      pixelCircle(c, x, y - 22, 6, '#1e7a92');
-      pixelCircle(c, x, y - 22, 4, '#4ad0e8');
-      pixelCircle(c, x, y - 22, 2, '#d8ffff');
+      // dois anéis triangulados internos (3 segmentos de bobina, sentidos opostos)
+      for (const [rad, dir, spd] of [[5.2, 1, 1.1], [2.9, -1, 1.8]]) {
+        for (let i = 0; i < 3; i++) {
+          const a0 = dir * t * spd + (i * Math.PI * 2) / 3;
+          const a1 = a0 + Math.PI / 2.6; // arco ~69°, 3 bobinas em triângulo
+          c.strokeStyle = '#1e5a74';
+          c.lineWidth = 2;
+          c.beginPath();
+          c.arc(x, y - 22, rad, a0, a1);
+          c.stroke();
+          c.strokeStyle = '#4ad0e8';
+          c.lineWidth = 1;
+          c.beginPath();
+          c.arc(x, y - 22, rad, a0, a1);
+          c.stroke();
+        }
+      }
+      // núcleo incandescente
+      pixelCircle(c, x, y - 22, 1.5, '#d8ffff');
+      // cross flare de lente no núcleo (no pico do pulso)
+      const cf = Math.max(0, Math.sin(t * 2.4 + (d.seed || 0)) - 0.6) / 0.4;
+      if (cf > 0) {
+        c.globalAlpha = cf * 0.85;
+        c.strokeStyle = '#eaffff';
+        c.lineWidth = 1;
+        c.beginPath();
+        c.moveTo(x - 7, y - 22); c.lineTo(x + 7, y - 22); // eixo +
+        c.moveTo(x, y - 29); c.lineTo(x, y - 15); // eixo |
+        c.moveTo(x - 4, y - 26); c.lineTo(x + 4, y - 18); // eixo x
+        c.moveTo(x + 4, y - 26); c.lineTo(x - 4, y - 18);
+        c.stroke();
+        c.globalAlpha = 1;
+        px(c, x - 1, y - 23, 2, 2, '#ffffff'); // 2px centrais no pico
+      }
       c.globalAlpha = 0.25 + pulse * 0.4;
       px(c, x - 3, y - 26, 2, 2, '#eaffff');
       px(c, x + 2, y - 20, 1, 1, '#eaffff');
@@ -3491,58 +3563,47 @@ function drawDecor(c, d, t, room) {
       break;
     }
     case 'poster_key': {
-      // Pintura congelada em moldura gelada: uma CHAVE DOURADA dentro
-      // (dica visual de Adventure — arte original)
+      // CRT antigo na geada mostrando ESTÁTICA (arte original, sem marca)
       const sd = d.seed || 0;
       const pulse = 0.5 + 0.5 * Math.sin(t * 2.1 + sd);
       // sombra na parede
       px(c, x - 22, y - 50, 42, 45, 'rgba(6,10,18,0.42)');
-      // moldura de gelo: blocos congelados
+      // moldura de gelo: blocos congelados (com trincas)
       px(c, x - 21, y - 49, 40, 44, '#7fa8c8');
       px(c, x - 20, y - 48, 38, 2, '#dcebf5');
       px(c, x - 21, y - 49, 3, 44, '#a9c8de');
       px(c, x + 18, y - 49, 3, 44, '#557a9e');
       px(c, x - 21, y - 6, 40, 2, '#3f5f7e');
-      // fendas na moldura
+      // trincas na moldura
       px(c, x - 14, y - 49, 1, 4, '#3f5f7e');
       px(c, x + 9, y - 7, 1, 4, '#2c405a');
-      // pintura embaçada (céu roxo e horizonte)
-      px(c, x - 18, y - 46, 34, 40, '#182033');
-      const sky = c.createLinearGradient(0, y - 46, 0, y - 6);
-      sky.addColorStop(0, '#1d2b45');
-      sky.addColorStop(0.55, '#2c3d5e');
-      sky.addColorStop(1, '#3a2c40');
-      c.fillStyle = sky;
-      c.fillRect(Math.round(x - 18), Math.round(y - 46), 34, 40);
-      // silhueta de castelo distante na pintura
-      px(c, x - 18, y - 26, 34, 1, '#241f30');
-      c.fillStyle = '#10141f';
-      c.fillRect(x - 13, y - 32, 6, 7);
-      c.fillRect(x - 4, y - 35, 8, 10);
-      c.fillRect(x + 6, y - 31, 5, 6);
-      c.fillRect(x - 4, y - 37, 1, 2);
-      c.fillRect(x, y - 37, 1, 2);
-      c.fillRect(x + 3, y - 37, 1, 2);
-      // lua pálida na pintura
-      pixelCircle(c, x + 11, y - 41, 2, '#c9d6e2');
-      // halo da chave
-      c.globalAlpha = 0.10 + pulse * 0.16;
-      pixelCircle(c, x, y - 25, 10 + pulse * 2, '#ffd24a');
+      px(c, x - 20, y - 31, 5, 1, '#3f5f7e');
+      px(c, x + 15, y - 40, 5, 1, '#2c405a');
+      // corpo do CRT
+      px(c, x - 18, y - 46, 34, 29, '#2e2e33');
+      px(c, x - 18, y - 46, 34, 2, '#4a4a52');
+      px(c, x - 18, y - 46, 2, 29, '#3a3a42');
+      px(c, x + 16, y - 46, 2, 29, '#17171c');
+      px(c, x - 18, y - 18, 34, 1, '#17171c');
+      // tela com estática branca (seed por frame -> chiado vivo)
+      px(c, x - 14, y - 43, 26, 22, '#0d0d10');
+      const tick = Math.floor(t * 9);
+      speckle(c, x - 14, y - 43, 26, 22, '#f4f4f4', 42, mulberry32((sd + tick * 131) >>> 0), 1);
+      speckle(c, x - 14, y - 43, 26, 22, '#8a8f98', 26, mulberry32((sd + 7 + tick * 57) >>> 0), 1);
+      // faixa de roll da estática descendo a tela
+      const rollY = y - 43 + Math.floor((t * 16 + sd * 5) % 22);
+      c.globalAlpha = 0.32;
+      px(c, x - 14, rollY, 26, 1, '#ffffff');
       c.globalAlpha = 1;
-      // CHAVE DOURADA pintada no centro
-      pixelCircle(c, x - 5, y - 27, 4, '#a97c25');
-      pixelCircle(c, x - 5, y - 27, 3, '#e6bb4f');
-      px(c, x - 6, y - 29, 2, 1, '#ffe9a3');
-      px(c, x - 5, y - 27, 2, 2, '#241f30');
-      px(c, x - 1, y - 28, 11, 2, '#e6bb4f');
-      px(c, x - 1, y - 28, 11, 1, '#ffe9a3');
-      px(c, x + 8, y - 26, 2, 3, '#c9a24a');
-      px(c, x + 5, y - 26, 1, 2, '#c9a24a');
-      // cintilação percorrendo a chave
-      const glint = Math.floor((t * 2.6 + sd) % 3);
-      if (glint === 0) px(c, x - 6, y - 29, 1, 1, '#ffffff');
-      else if (glint === 1) px(c, x + 2, y - 28, 1, 1, '#ffffff');
-      else px(c, x + 8, y - 26, 1, 1, '#ffffff');
+      // reflexo do vidro
+      px(c, x - 12, y - 41, 6, 1, 'rgba(255,255,255,0.10)');
+      // UM ÚNICO PIXEL branco brilhando ao centro (raio ~1-2px, alpha pulsando)
+      c.globalAlpha = 0.45 + 0.55 * pulse;
+      px(c, x - 1, y - 33, 2, 2, '#ffffff');
+      if (pulse > 0.72) px(c, x, y - 32, 1, 1, '#ffffff'); // estrela central
+      c.globalAlpha = 1;
+      // LED de espera
+      px(c, x, y - 19, 1, 1, '#c0392b');
       // gelo escorrendo pelos cantos e gotas congeladas
       px(c, x - 18, y - 46, 8, 2, '#dcebf5');
       px(c, x - 18, y - 46, 2, 7, '#dcebf5');
@@ -3552,8 +3613,8 @@ function drawDecor(c, d, t, room) {
       px(c, x + 12, y - 9, 6, 3, '#8fa9bd');
       px(c, x - 13, y - 39, 1, 4, '#b8d4e6');
       px(c, x + 14, y - 37, 1, 5, '#a9c8de');
-      // assinatura minúscula do "pintor"
-      px(c, x + 8, y - 11, 6, 1, '#5a6f8e');
+      // embaixo: só '...?' pequeno (sem nome)
+      drawText(c, '...?', x, y - 13, { scale: 1, color: '#8a8f98', align: 'center' });
       break;
     }
     case 'ice_platform': {
@@ -3800,12 +3861,12 @@ function drawItemIcon(c, type, x, y, s = 1, t = 0) {
     px(c, -2, 4, 4, 2, '#375d93');
     px(c, -1, -3, 2, 7, '#dfe8ff');
   } else if (type === 'mc_sword') {
-    px(c, 0, -12, 3, 14, '#3fa84f');
-    px(c, 1, -12, 1, 14, '#8ff09a');
-    px(c, 0, -14, 2, 2, '#dfffe2');
+    px(c, 0, -12, 3, 14, '#33ebff');
+    px(c, 1, -12, 1, 14, '#8ff5ff');
+    px(c, 0, -14, 2, 2, '#d8ffff');
     px(c, -4, 2, 11, 2, '#8a6a20');
     px(c, -1, 4, 3, 7, '#6a4628');
-    px(c, -2, 10, 5, 2, '#5adf6a');
+    px(c, -2, 10, 5, 2, '#3ad0ff');
   } else if (type === 'rbiana_burger') {
     px(c, -6, -7, 12, 2, '#f0c070');
     px(c, -6, -5, 12, 2, '#e0a04a');
@@ -3870,13 +3931,28 @@ function drawItemIcon(c, type, x, y, s = 1, t = 0) {
     px(c, -3, 2, 1, 1, '#3a2a10');
     px(c, 2, 2, 1, 1, '#3a2a10');
     px(c, -2, -4, 4, 1, '#fff0a0');
-  } else if (type === 'roblox_block') {
-    px(c, -6, -6, 12, 12, '#5adf6a');
-    px(c, -6, -6, 12, 1, '#8ff09a');
-    px(c, -4, -8, 2, 3, '#8ff09a');
-    px(c, 2, -8, 2, 3, '#8ff09a');
-    px(c, -4, 3, 8, 2, '#3fa84f');
-    px(c, -4, -4, 3, 3, '#7fe6a0');
+  } else if (type === 'roblox_cola') {
+    // garrafa de refrigerante (arte própria, sem logo): silhueta vermelha, faixa e bolhas
+    px(c, -2, -15, 5, 2, '#8a9098'); // tampa
+    px(c, -2, -15, 5, 1, '#b8bec6');
+    px(c, -4, -13, 9, 2, '#f4f1e6'); // halo de espuma no gargalo
+    px(c, -4, -11, 1, 2, '#f4f1e6');
+    px(c, 3, -11, 1, 2, '#f4f1e6');
+    px(c, -1, -14, 1, 1, '#ffffff');
+    px(c, 1, -14, 1, 1, '#ffffff');
+    px(c, -2, -11, 5, 2, '#c0392b'); // gargalo
+    px(c, -3, -9, 7, 2, '#c0392b'); // ombros
+    px(c, -5, -7, 11, 16, '#c0392b'); // corpo
+    px(c, 3, -7, 3, 16, '#7a1f16'); // sombra
+    px(c, -4, -6, 1, 14, '#ff6a5a'); // highlight
+    px(c, -5, -1, 11, 5, '#f4f1e6'); // faixa branca
+    px(c, -5, -1, 11, 1, '#ffffff');
+    px(c, -5, 3, 11, 1, '#d8d4c8');
+    px(c, -2, 0, 2, 2, '#c0392b'); // bolha 1
+    px(c, 1, 1, 1, 1, '#ff6a5a');
+    px(c, 2, 1, 2, 2, '#c0392b'); // bolha 2
+    px(c, 3, 2, 1, 1, '#ff6a5a');
+    px(c, -5, 8, 11, 1, '#7a1f16'); // base
   } else if (type === 'undertale_star') {
     px(c, -1, -9, 3, 18, '#ffe66a');
     px(c, -9, -1, 18, 3, '#ffe66a');
@@ -4033,38 +4109,69 @@ function drawPlayer(c, game, t) {
     drawItemIcon(c, game.held.type, px0 + side + sway, iy, 0.62 * s, t);
   }
 
-  // golpe de espada (centro, raios e espessura proporcionais)
-  if (p.swing > 0) {
+  // golpe de espada/item especial — swoop rico (só com item na mão)
+  if (p.swing > 0 && game.held) {
     const ang = { right: 0, left: Math.PI, down: Math.PI / 2, up: -Math.PI / 2 }[p.facing] || 0;
     const dur = p.swingDur || 0.22;
     const prog = 1 - p.swing / dur;
     const heavy = p.swingKind === 'heavy';
     const reach = (p.swingReach || (heavy ? 40 : 32)) * s;
     const swingColor = p.swingColor || '#fff6d0';
+    const sw = heavy ? 0.85 : 0.55; // meia-abertura do arco
+    const arcR = reach * 0.8; // raio do arco principal
+    const cur = ang - (heavy ? 1.35 : 0.9) + prog * (heavy ? 2.7 : 1.8); // ângulo atual da varredura
     c.save();
     c.translate(px0, py0 - 22 * s);
-    c.rotate(ang - (heavy ? 1.35 : 0.9) + prog * (heavy ? 2.7 : 1.8));
+
+    // (d) anel de choque (heavy): se expande do jogador e some
     if (heavy) {
-      c.globalAlpha = 0.35;
+      const rr = reach * (0.45 + prog * 0.55);
+      c.globalAlpha = Math.max(0, 1 - prog) * 0.5;
       c.strokeStyle = swingColor;
-      c.lineWidth = Math.max(1, 9 * s);
+      c.lineWidth = Math.max(1, 2 * s);
       c.beginPath();
-      c.arc(0, 0, reach - 6 * s, -0.85, 0.85);
+      c.arc(0, 0, rr, 0, Math.PI * 2);
       c.stroke();
       c.globalAlpha = 1;
     }
-    c.strokeStyle = heavy ? '#fff0b0' : swingColor;
-    c.lineWidth = Math.max(1, (heavy ? 4 : 3) * s);
-    c.beginPath();
-    c.arc(0, 0, reach * 0.65, heavy ? -0.85 : -0.55, heavy ? 0.85 : 0.55);
-    c.stroke();
-    c.globalAlpha = 0.55;
-    c.strokeStyle = swingColor;
-    c.lineWidth = Math.max(1, (heavy ? 7 : 5) * s);
-    c.beginPath();
-    c.arc(0, 0, reach * 0.8, heavy ? -0.55 : -0.35, heavy ? 0.55 : 0.35);
-    c.stroke();
+
+    // (a) ghost arcs de motion-blur atrás do ângulo atual (mesmo raio do arco)
+    for (const [off, alpha] of [[-0.28, 0.32], [-0.56, 0.18]]) {
+      c.globalAlpha = alpha * (1 - prog * 0.4);
+      c.strokeStyle = swingColor;
+      c.lineWidth = Math.max(1, (heavy ? 7 : 5) * s);
+      c.beginPath();
+      c.arc(0, 0, arcR, cur + off - sw, cur + off);
+      c.stroke();
+    }
     c.globalAlpha = 1;
+
+    // (b) arco principal (0.85rad heavy / 0.55 light), duas passadas
+    c.globalAlpha = 0.75; // glow externo (cor do golpe)
+    c.strokeStyle = swingColor;
+    c.lineWidth = Math.max(1, (heavy ? 6 : 4) * s);
+    c.beginPath();
+    c.arc(0, 0, arcR, cur - sw, cur);
+    c.stroke();
+    c.globalAlpha = 1; // núcleo claro
+    c.strokeStyle = '#fff0b0';
+    c.lineWidth = Math.max(1, (heavy ? 2 : 1.5) * s);
+    c.beginPath();
+    c.arc(0, 0, arcR, cur - sw, cur);
+    c.stroke();
+
+    // (c) ponta incandescente no ângulo final do arco (na ponta da arc)
+    const tipX = Math.cos(cur) * arcR;
+    const tipY = Math.sin(cur) * arcR;
+    px(c, tipX - 1, tipY - 1, 2, 2, '#fff0b0');
+    px(c, tipX, tipY, 1, 1, '#ffffff');
+
+    // (e) arma na ponta do arco, girando com a varredura
+    c.save();
+    c.rotate(cur); // rotação = ângulo do caminho
+    drawItemIcon(c, game.held.type, arcR, 0, 0.85, t);
+    c.restore();
+
     c.restore();
   }
 
@@ -4407,27 +4514,6 @@ function drawBat(c, b, t) {
 /* Efeitos dinâmicos da sala                                          */
 /* ------------------------------------------------------------------ */
 
-/* Silhueta genérica de morcego para a projeção do bat-sinal.
-   Forma original, apenas com asas abertas, sem qualquer logo conhecido. */
-function drawBatProjection(c, cx, cy, s = 1) {
-  const pts = [
-    [0, 3], [-3, 2], [-6, 4], [-9, 1], [-10, 3], [-16, 0],
-    [-15, -4], [-10, -2], [-7, -5], [-3, -3], [-2, -6], [0, -4],
-    [2, -6], [3, -3], [7, -5], [10, -2], [15, -4], [16, 0],
-    [10, 3], [9, 1], [6, 4], [3, 2],
-  ];
-  c.fillStyle = '#ffe9a3';
-  c.beginPath();
-  for (let i = 0; i < pts.length; i++) {
-    const px2 = cx + pts[i][0] * s;
-    const py2 = cy + pts[i][1] * s;
-    if (i === 0) c.moveTo(px2, py2);
-    else c.lineTo(px2, py2);
-  }
-  c.closePath();
-  c.fill();
-}
-
 function drawRoomFX(c, room, t) {
   // tochas
   for (const torch of room.torches) {
@@ -4488,46 +4574,6 @@ function drawRoomFX(c, room, t) {
     const pulse = 0.5 + Math.sin(t * 2) * 0.3;
     c.globalAlpha = 0.18 * pulse;
     pixelCircle(c, ALTAR.x, ALTAR.y - 8, 30, '#e6bb4f');
-    c.globalAlpha = 1;
-  }
-
-  // bat-sinal aceso nas ruínas: feixe contínuo e projeção genérica na parede
-  if (room.id === 'ruinas' && room.batLit) {
-    const bd = room.decor.find((d) => d.type === 'batsignal');
-    const bx = bd ? bd.x : 72;
-    const by = bd ? bd.y : 120;
-    const flick = 0.5 + 0.5 * Math.sin(t * 3.4 + bx * 0.1);
-    const sweep = Math.sin(t * 0.62) * 26;
-    const tx = bx + 82 + sweep;
-    // feixe de luz pálido até a faixa superior da parede (oscila)
-    const pulse = 0.72 + 0.28 * Math.sin(t * 1.9 + 0.7);
-    c.globalAlpha = (0.08 + flick * 0.05) * pulse;
-    c.fillStyle = '#ffe9a3';
-    c.beginPath();
-    c.moveTo(bx - 2, by - 2);
-    c.lineTo(tx - 22, INNER.y);
-    c.lineTo(tx + 22, INNER.y);
-    c.lineTo(bx + 2, by + 2);
-    c.closePath();
-    c.fill();
-    // raios internos
-    c.globalAlpha = (0.12 + flick * 0.08) * pulse;
-    c.strokeStyle = '#fff6d0';
-    c.lineWidth = 1;
-    c.beginPath();
-    c.moveTo(bx, by - 1);
-    c.lineTo(tx - 6, INNER.y);
-    c.moveTo(bx, by + 1);
-    c.lineTo(tx + 8, INNER.y);
-    c.stroke();
-    // halo da lente
-    c.globalAlpha = 0.25 + flick * 0.35;
-    pixelCircle(c, bx, by, 9 + flick * 2, '#ffe9a3');
-    c.globalAlpha = 1;
-
-    // silhueta de morcego projetada
-    c.globalAlpha = (0.38 + flick * 0.22) * pulse;
-    drawBatProjection(c, tx, INNER.y - 7, 1);
     c.globalAlpha = 1;
   }
 
@@ -5514,7 +5560,7 @@ function drawFade(c, alpha) {
 function drawAdventure(c, st, t) {
   const a = (st && st.adv) || {};
   const hasAdv = typeof ADVENTURE !== 'undefined' && ADVENTURE && Array.isArray(ADVENTURE.maps);
-  const labels = ['O CASTELO', 'A CAVERNA', 'O OVO', 'O NOME'];
+  const labels = ['O CASTELO', 'A CAVERNA', 'O OVO', '???'];
   const idx = Math.max(0, Math.min(3, a.screen | 0));
   const M = (hasAdv && ADVENTURE.maps[idx]) || { walls: [] };
   const hint = (hasAdv && ADVENTURE.hint) || 'SETAS/WASD: MOVER    AÇÃO/ESC: SAIR';
@@ -5541,7 +5587,7 @@ function drawAdventure(c, st, t) {
   for (let gx = 20; gx < VW; gx += 40) px(c, gx, 28, 1, VH - 28, '#ffffff');
   c.globalAlpha = 1;
 
-  // estrelas discretas nas fases finais (ovo e nome)
+  // estrelas discretas nas fases finais (ovo e ???)
   if (idx >= 2) {
     for (let i = 0; i < 52; i++) {
       const sx = 12 + ((i * 83 + 11) % 376);
@@ -5703,7 +5749,9 @@ function drawAdventure(c, st, t) {
   px(c, 0, 0, VW, 28, '#0b0b0b');
   px(c, 0, 27, VW, 1, S.shade);
   px(c, 6, 11, 2, 2, S.top);
-  drawText(c, (M.label || labels[idx]).toUpperCase(), 12, 10, {
+  // barra superior (a 4ª tela fica anônima: '???' — world.js não foi alterado)
+  const barLabel = idx === 3 ? labels[3] : (M.label || labels[idx]);
+  drawText(c, barLabel.toUpperCase(), 12, 10, {
     scale: 1, color: S.label,
   });
   drawText(c, hint, VW - 8, 10, {
@@ -5716,30 +5764,16 @@ function drawAdventure(c, st, t) {
 
   // tela de vitória (por cima de tudo, inclusive da barra)
   if (a.phase === 'win') {
-    px(c, 0, 0, VW, VH, 'rgba(0,0,0,0.74)');
-    const pulse = 0.5 + 0.5 * Math.sin(now * 2.4);
-    // ponto invisível (homenagem a Adventure, Atari 2600)
-    c.globalAlpha = 0.08 + pulse * 0.10;
-    pixelCircle(c, VW / 2, 84, 12, '#e6bb4f');
-    c.globalAlpha = 1;
-    pixelCircle(c, VW / 2, 84, 3, '#f4f1e6');
-
-    drawText(c, credit, VW / 2, 96, {
-      scale: 1, color: '#e6bb4f', align: 'center', shadow: '#000000',
-    });
-    drawText(c, 'VOCÊ ENCONTROU O NOME DE ROBINETT', VW / 2, 120, {
-      scale: 1, color: '#f4f1d0', align: 'center', shadow: '#000000',
-    });
-    c.globalAlpha = 0.75 + pulse * 0.25;
-    drawText(c, 'WARREN ROBINETT', VW / 2, 170, {
+    px(c, 0, 0, VW, VH, 'rgba(0,0,0,0.72)');
+    // apenas o crédito do jogo
+    c.globalAlpha = 0.75 + 0.25 * Math.sin(now * 2.2);
+    drawText(c, credit, VW / 2, 128, {
       scale: 2, color: '#e6bb4f', align: 'center', shadow: '#000000',
     });
     c.globalAlpha = 1;
-    c.globalAlpha = 0.55 + pulse * 0.45;
-    drawText(c, 'AÇÃO/ESC: SAIR', VW / 2, 205, {
+    drawText(c, 'AÇÃO/ESC: SAIR', VW / 2, 196, {
       scale: 1, color: '#8a8f98', align: 'center',
     });
-    c.globalAlpha = 1;
   }
 
   c.restore();

@@ -12,7 +12,7 @@
    window.AtariTV = { open(cb?), close(), found() }
    - open(cb?): abre o overlay da TV. cb (opcional) é chamado após o close().
    - close(): fecha o overlay, revoga blob URLs e esvazia o player.
-   - found(): botão "ACHEI O NOME DE ROBINETT!" (+1 coração máximo, 1× por jornada).
+   - found(): botão "ACHEI!" (+1 coração máximo, 1× por jornada).
    ========================================================================= */
 
 (function () {
@@ -224,7 +224,7 @@
     if (!st || !st.easter) return;
 
     if (st.easter.rpoKey) {
-      gameToast(st, 'Já encontrou o nome de Warren Robinett nesta jornada!', 2.6);
+      gameToast(st, 'Você já descobriu esse segredo nesta jornada!', 2.6);
       syncFoundButton(st);
       return;
     }
@@ -233,7 +233,7 @@
     st.maxHearts += 1;
     st.hearts = Math.min(st.maxHearts, st.hearts + 1);
     if (hasSound()) Sound.sfx('adv_win');
-    gameToast(st, 'VOCÊ ENCONTROU O NOME DE WARREN ROBINETT! +1 CORAÇÃO MÁXIMO', 4);
+    gameToast(st, 'VOCÊ DESCOBRIU UM SEGREDO DO ADVENTURE! +1 CORAÇÃO MÁXIMO', 4);
     try {
       if (typeof spawnParticles === 'function') {
         spawnParticles(st, st.player.x, st.player.y - 18, '#e6bb4f', 16, { speed: 34, life: 0.9 });

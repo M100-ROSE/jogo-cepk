@@ -90,7 +90,7 @@ const WEAPON_DEFS = {
   mc_sword: {
     label: 'Espada de Diamante',
     short: 'Diam.',
-    color: '#5adf6a',
+    color: '#3ad0ff',
     light: { dur: 0.2, reach: 36, arcDot: 0.55, dmg: 2, cd: 0.55, knock: 9, shake: 3 },
     heavy: { dur: 0.44, reach: 44, arcDot: 0.3, dmg: 4, cd: 2.5, knock: 28, shake: 7 },
   },
@@ -103,10 +103,10 @@ const WEAPON_DEFS = {
     light: { dur: 0.18, reach: 32, arcDot: 0.6, dmg: 1, cd: 0.4, knock: 12, shake: 3 },
     heavy: { dur: 0.4, reach: 38, arcDot: 0.32, dmg: 2, cd: 1.8, knock: 26, shake: 6 },
   },
-  roblox_block: {
-    label: 'Bloco de Checkpoint',
-    short: 'Bloco',
-    color: '#5adf6a',
+  roblox_cola: {
+    label: 'Bloxy Cola',
+    short: 'Cola',
+    color: '#c0392b',
     effect: 'shield',
     light: { dur: 0.24, reach: 32, arcDot: 0.5, dmg: 1, cd: 0.7, knock: 9, shake: 3 },
     heavy: { dur: 0.5, reach: 40, arcDot: 0.3, dmg: 3, cd: 2.4, knock: 26, shake: 7 },
@@ -161,7 +161,8 @@ const SECRET_COMMANDS = [
   { code: '/CORACAO', weapon: 'deltarune_heart' },
   { code: '/DIAMANTE', weapon: 'mc_sword' },
   { code: '/VERITY', weapon: 'verity_ball' },
-  { code: '/CHECKPOINT', weapon: 'roblox_block' },
+  { code: '/CHECKPOINT', weapon: 'roblox_cola' },
+  { code: '/BLOXYCOLA', weapon: 'roblox_cola' },
   { code: '/HAMBURGUER', weapon: 'rbiana_burger' },
   { code: '/ESTRELA', weapon: 'undertale_star' },
   { code: '/MOEDA', weapon: 'ultrakill_coin' },
@@ -1870,7 +1871,8 @@ function tryEasterEgg(st) {
         Sound.sfx('batman');
         spawnParticles(st, egg.x, egg.y - 26, '#f2e06a', 14, { speed: 32, life: 1 });
         spawnParticles(st, egg.x, egg.y - 26, '#fff6d0', 8, { speed: 22, life: 0.8 });
-        toast(st, 'O sinal está no céu. Escudo de 1 golpe.', 3.2);
+        toast(st, 'Ow... melhor tomar cuidado. Tenho muito medo de palhaços.', 3.2);
+        Sound.sfx('joker_laugh');
       } else {
         Sound.sfx('toast');
         toast(st, 'O sinal já está aceso.', 2.2);
@@ -2086,7 +2088,7 @@ function updateAdventure(st, dt) {
         a.rewardGiven = true;
         st.maxHearts += 1;
         st.hearts = Math.min(st.maxHearts, st.hearts + 1);
-        toast(st, 'VOCÊ ENCONTROU O NOME DE WARREN ROBINETT! +1 CORAÇÃO MÁXIMO.', 4.5);
+        toast(st, 'VOCÊ DESCOBRIU UM SEGREDO DO ADVENTURE! +1 CORAÇÃO MÁXIMO.', 4.5);
         spawnParticles(st, st.player.x, st.player.y - 18, '#e6bb4f', 16, { speed: 34, life: 0.9 });
         spawnParticles(st, st.player.x, st.player.y - 18, '#ffe9a3', 8, { speed: 24, life: 0.7 });
       }
@@ -2232,14 +2234,15 @@ function tryAttack(st, kind) {
   p.swingColor = weapon.color || '#fff6d0';
   st.swingId = (st.swingId || 0) + 1;
 
+  const bloxyCola = st.held && st.held.type === 'roblox_cola';
   if (kind === 'heavy') {
     p.heavyCd = def.cd;
     p.heavyCdMax = def.cd;
-    Sound.sfx('heavy');
+    Sound.sfx(bloxyCola ? 'rb_oof' : 'heavy');
   } else {
     p.swingCd = def.cd;
     p.swingCdMax = def.cd;
-    Sound.sfx('swing');
+    Sound.sfx(bloxyCola ? 'rb_blip' : 'swing');
   }
 
   // partículas de corte à frente
@@ -3259,16 +3262,28 @@ function updateGeekEggs(st, dt) {
     }
   }
 
-  // 4) Âncora de teia na Caverna: dispara durante o rolamento.
-  if (room.id === 'caverna' && p.rollT > 0 && e.webCd <= 0) {
-    const web = GEEK_EGGS.spiderman;
-    if (dist(p.x, p.y, web.x, web.y) < 44) {
-      e.webCd = 12;
-      st.speedBoostT = Math.max(st.speedBoostT || 0, 5);
-      Sound.sfx('web');
-      spawnParticles(st, web.x, web.y - 8, '#f4f7ff', 12, { speed: 36, life: 0.7 });
-      spawnParticles(st, web.x, web.y - 8, '#c8d8e8', 6, { speed: 24, life: 0.6 });
-      toast(st, 'Teia puxada! Velocidade extra por 5s.', 2.8);
+  // 4) Âncora de teia na Caverna: dispara por proximidade quando o lobo chega perto.
+  const spiderWeb = GEEK_EGGS.spiderman;
+  if (room.id === 'caverna' && e.webCd <= 0 &&
+      dist(p.x, p.y, spiderWeb.x, spiderWeb.y) < 44) {
+    const web = spiderWeb;
+    e.webCd = 14;
+    let stunnedAny = false;
+    for (const d of st.enemies) {
+      if (d.room === 'caverna' && d.alive) {
+        d.stunT = 4.0;
+        stunnedAny = true;
+        spawnParticles(st, d.x, d.y - 26, '#f4f7ff', 12, { speed: 30, life: 0.8 });
+        spawnParticles(st, d.x, d.y - 26, '#c8d8e8', 6, { speed: 18, life: 0.7 });
+      }
+    }
+    Sound.sfx('web_thwip');
+    toast(st, 'VAI TEIA!', 1.6);
+    st.shake = 4;
+    if (!stunnedAny) {
+      // sem dragão vivo na caverna: o grito e as partículas saem na âncora
+      spawnParticles(st, web.x, web.y - 8, '#f4f7ff', 12, { speed: 30, life: 0.8 });
+      spawnParticles(st, web.x, web.y - 8, '#c8d8e8', 6, { speed: 18, life: 0.7 });
     }
   }
 

@@ -153,7 +153,7 @@ completo.
   - `/coracao` → **Coração Sombrio** (Deltarune): cura um pouco a cada acerto.
   - `/diamante` → **Espada de Diamante** (Minecraft): dano alto.
   - `/verity` → **Bola Verity**: quica e atordoa o dragão.
-  - `/checkpoint` → **Bloco de Checkpoint** (Roblox): o golpe forte concede um
+  - `/checkpoint` ou `/bloxycola` → **Bloxy Cola** (Roblox): o golpe forte concede um
     escudo que bloqueia um golpe.
   - `/hamburguer` → **Hambúrguer da Rbiana**: cura um pouco a cada acerto.
   - `/estrela` → **Estrela da Determinação** (Undertale): dá invulnerabilidade
@@ -202,8 +202,8 @@ usado.
   acender o sinal e ganhar um escudo de 1 golpe.
 - **Reator arc** — *guarda*: mantenha a guarda (DEF) perto do reator por 1,5s
   para ganhar escudo e +1 de dano por 8s, uma vez por jornada.
-- **Âncora de teia** — *rolamento*: role (C) perto da âncora para puxar a teia
-  e ganhar velocidade extra por 5s. Tem recarga e pode ser repetido.
+- **Âncora de teia** — *proximidade*: passe perto da âncora para puxar a teia
+  e atordoar os dragões da Caverna por 4s. Tem recarga e pode ser repetido.
 - **Figura silenciosa** — *olhar*: fique parado encarando a figura. A cada
   2,5s ela avança um estágio; no último, você sobrevive e recupera 1 coração.
 - **Telefone** — *AÇÃO*: o telefone toca sozinho de tempos em tempos. Atenda
@@ -260,8 +260,8 @@ para encontrar o ovo.
 
 Aproxime-se da TV e use **AÇÃO/Espaço**. A TV abre o **Atari 2600 de verdade**
 (emulador **Stella** via EmulatorJS, core `atari2600`) rodando *Adventure*.
-Na TV de verdade, o botão dourado **ACHEI O NOME DE ROBINETT!** registra o
-achado (na recriação, a própria recriação concede a recompensa ao tocar no
+Na TV de verdade, o botão dourado **ACHEI!** registra a descoberta
+(na recriação, a própria recriação concede a recompensa ao tocar no
 ponto invisível — veja "Recompensa" abaixo):
 
 - **ROM não vem no repositório** (direitos autorais). Coloque **a sua** cópia
@@ -283,11 +283,11 @@ ponto invisível — veja "Recompensa" abaixo):
 - Dentro da TV de verdade, **`Esc` fecha** a TV; o jogo por baixo fica
   congelado e nenhuma tecla vaza para o lobo enquanto ela está aberta.
 
-**Recompensa (uma vez por jornada):** achar a mensagem escondida por Warren
-Robinett em *Adventure* ("Created by Warren Robinett" — o primeiro easter egg
-da história dos jogos) vale **+1 coração máximo**. No emulador real, toque em
-**ACHEI O NOME DE ROBINETT!** depois de encontrar a sala secreta dentro do
-jogo; na recriação, o achado é automático ao encostar no ponto invisível
+**Recompensa (uma vez por jornada):** descobrir um segredo escondido dentro
+do *Adventure* (o jogador experiente vai reconhecer) vale **+1 coração
+máximo**. No emulador real, toque em
+**ACHEI!** depois de encontrar a sala secreta dentro do
+jogo; na recriação, a descoberta é automática ao encostar no ponto invisível
 (veja o spoiler). O botão desativa depois de usado; sair e voltar não duplica
 a recompensa. Vale tanto para o emulador real quanto para a recriação — é a
 mesma chave `rpoKey`, uma vez por jornada.
@@ -301,8 +301,8 @@ porta leste do castelo, desvie do dragão na caverna e toque no teto perto do
 canto direito para achar a passagem secreta; no quarto do ovo
 (**O OVO**), não há chave — existe um **ponto invisível** perto do canto
 superior direito, e entrar na fase avisa que "Algo aqui não aparece…". Ao
-encostar nele, você entra no aposento oculto **O NOME**, com o nome
-**CRIADO POR WARREN ROBINETT**, e recebe **+1 coração máximo** — uma vez por
+encostar nele, você entra no aposento oculto **O NOME**, com o crédito que o
+jogador experiente vai reconhecer, e recebe **+1 coração máximo** — uma vez por
 jornada (a mesma chave `rpoKey` do emulador real; um coração ou outro,
 nunca os dois). O dragão da caverna não tira vidas: ele apenas devolve o
 quadradinho ao início. Na tela de vitória, AÇÃO/Esc retorna ao Castelo de Gelo.

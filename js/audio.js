@@ -699,6 +699,93 @@ class GameAudio {
         });
         this.tone(1319, 0.3, 'square', 0.1, null, 0.42);
         break;
+      case 'joker_laugh': {
+        // risada sintética original, abafada e "de fundo": 4 "ha" descendentes
+        // em quadrado/serra alternados com lowpass, leve ruído no ataque
+        if (!this.ctx) break;
+        const ha = [392, 370, 349, 330];
+        ha.forEach((f, i) => {
+          const delay = i * 0.22;
+          const t0 = this.ctx.currentTime + delay;
+          const osc = this.ctx.createOscillator();
+          osc.type = i % 2 ? 'sawtooth' : 'square';
+          osc.frequency.setValueAtTime(f + 26, t0);
+          osc.frequency.exponentialRampToValueAtTime(f, t0 + 0.015); // sweep curto de 0.015s
+          osc.frequency.exponentialRampToValueAtTime(f - 28, t0 + 0.15); // queda do "ha"
+          const lp = this.ctx.createBiquadFilter();
+          lp.type = 'lowpass';
+          lp.frequency.setValueAtTime(720, t0); // abafada, meio distante
+          const g = this.ctx.createGain();
+          g.gain.setValueAtTime(0.0001, t0);
+          g.gain.exponentialRampToValueAtTime(0.075, t0 + 0.02);
+          g.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.16);
+          osc.connect(lp);
+          lp.connect(g);
+          g.connect(this.master);
+          osc.start(t0);
+          osc.stop(t0 + 0.18);
+          this.noise(0.045, 0.035, 750, delay); // ruído leve no ataque do "ha"
+        });
+        break;
+      }
+      case 'rb_oof': {
+        // "oof" sintético original: grunhido descendente (quadrado + lowpass) + thump grave no fim
+        if (!this.ctx) break;
+        const t0 = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        osc.type = 'square';
+        osc.frequency.setValueAtTime(240, t0);
+        osc.frequency.exponentialRampToValueAtTime(150, t0 + 0.12);
+        osc.frequency.exponentialRampToValueAtTime(95, t0 + 0.26);
+        const lp = this.ctx.createBiquadFilter();
+        lp.type = 'lowpass';
+        lp.frequency.setValueAtTime(800, t0);
+        const g = this.ctx.createGain();
+        g.gain.setValueAtTime(0.0001, t0);
+        g.gain.exponentialRampToValueAtTime(0.2, t0 + 0.018);
+        g.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.28);
+        osc.connect(lp);
+        lp.connect(g);
+        g.connect(this.master);
+        osc.start(t0);
+        osc.stop(t0 + 0.3);
+        this.tone(64, 0.14, 'sine', 0.24, 40, 0.22); // thump grave no fim
+        this.noise(0.08, 0.1, 420, 0.22); // corpo do thump
+        break;
+      }
+      case 'rb_blip':
+        // chime de spawn/join original: duas notas ascendentes rápidas (triângulo) com leve eco
+        this.tone(523, 0.09, 'triangle', 0.16);
+        this.tone(784, 0.09, 'triangle', 0.16, null, 0.09);
+        this.tone(523, 0.07, 'triangle', 0.055, null, 0.22); // eco
+        this.tone(784, 0.12, 'triangle', 0.06, null, 0.31); // eco
+        break;
+      case 'web_thwip': {
+        // "thwip" sintético original da teia: varredura ascendente (serra curta + ruído branco),
+        // cutoff abrupto no release
+        if (!this.ctx) break;
+        const t0 = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(300, t0);
+        osc.frequency.exponentialRampToValueAtTime(900, t0 + 0.09);
+        const lp = this.ctx.createBiquadFilter();
+        lp.type = 'lowpass';
+        lp.frequency.setValueAtTime(2600, t0);
+        lp.frequency.setValueAtTime(2600, t0 + 0.075);
+        lp.frequency.exponentialRampToValueAtTime(110, t0 + 0.095); // cutoff abrupto no release
+        const g = this.ctx.createGain();
+        g.gain.setValueAtTime(0.16, t0);
+        g.gain.setValueAtTime(0.16, t0 + 0.07);
+        g.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.11);
+        osc.connect(lp);
+        lp.connect(g);
+        g.connect(this.master);
+        osc.start(t0);
+        osc.stop(t0 + 0.12);
+        this.noise(0.08, 0.12, 3200); // ruído branco do "thwip"
+        break;
+      }
       default:
         break;
     }
