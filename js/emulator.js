@@ -5,8 +5,9 @@
    EmulatorJS (core 'atari2600', Stella) ou a recriação in-canvas.
 
    A ROM NÃO vem no repositório (direitos autorais). O usuário coloca a
-   própria cópia em assets/game/adventure.bin (NTSC, ~4 KB) ou seleciona o
-   arquivo local — o último caso funciona até em file://.
+   própria cópia em assets/game/ (NTSC, ~4 KB) com um dos nomes reconhecidos
+   (adventure.bin, adventure.a26, adventure.rom ou "Adventure (1978) (Atari).zip")
+   ou seleciona o arquivo local — o último caso funciona até em file://.
 
    window.AtariTV = { open(cb?), close(), found() }
    - open(cb?): abre o overlay da TV. cb (opcional) é chamado após o close().
@@ -139,26 +140,41 @@
 
     if (hasSound()) Sound.pauseMusic();
     setOverlayVisible(true);
-    showChooser('Verificando assets/game/adventure.bin…');
+    showChooser('Verificando a ROM local…');
     syncFoundButton(st);
 
-    // Tenta o arquivo servido junto com o jogo. Se existir, sobe direto;
-    // senão (404, file://, offline), cai no seletor de arquivo.
-    var romUrl = 'assets/game/adventure.bin';
+    // Tenta os nomes reconhecidos, em ordem. O primeiro que responder ok
+    // vira a URL de boot (o .zip vai direto para o EJS_gameUrl: o EmulatorJS
+    // tenta extrair; se falhar, o usuário usa o seletor de arquivo).
+    // Se NENHUM responder ok (404, file://, offline), cai no seletor.
+    var candidates = [
+      'assets/game/adventure.bin',
+      'assets/game/adventure.a26',
+      'assets/game/adventure.rom',
+      'assets/game/Adventure (1978) (Atari).zip'
+    ];
     var warn =
-      'Coloque a sua cópia em assets/game/adventure.bin ou selecione o arquivo (funciona até em file://)';
-    try {
-      fetch(romUrl, { method: 'HEAD' })
-        .then(function (res) {
-          if (res && res.ok) boot(romUrl);
-          else showChooser(warn);
-        })
-        .catch(function () {
-          showChooser(warn);
-        });
-    } catch (e) {
-      showChooser(warn);
+      'Coloque a sua cópia em assets/game/adventure.bin, .a26, .rom ou "Adventure (1978) (Atari).zip" — ou selecione o arquivo (funciona até em file://)';
+    function probe(i) {
+      if (i >= candidates.length) {
+        showChooser(warn);
+        return;
+      }
+      var romUrl = candidates[i];
+      try {
+        fetch(romUrl, { method: 'HEAD' })
+          .then(function (res) {
+            if (res && res.ok) boot(romUrl);
+            else probe(i + 1);
+          })
+          .catch(function () {
+            probe(i + 1);
+          });
+      } catch (e) {
+        probe(i + 1);
+      }
     }
+    probe(0);
   }
 
   function close() {

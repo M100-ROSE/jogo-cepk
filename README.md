@@ -264,12 +264,16 @@ Tanto lá quanto na recriação, o botão dourado **ACHEI O NOME DE ROBINETT!**
 registra o achado (veja "Recompensa" abaixo):
 
 - **ROM não vem no repositório** (direitos autorais). Coloque **a sua** cópia
-  em **`assets/game/adventure.bin`** (Atari 2600, NTSC, ~4 KB — backup pessoal
-  de um cartucho seu). Se o arquivo existir, a TV carrega a ROM sozinha assim
-  que você interage com ela. Veja `assets/game/README.md`.
+  em **`assets/game/`** (Atari 2600, NTSC, ~4 KB — backup pessoal
+  de um cartucho seu) com um dos nomes reconhecidos: **`adventure.bin`**,
+  **`adventure.a26`**, **`adventure.rom`** ou
+  **`Adventure (1978) (Atari).zip`**. A TV tenta nessa ordem e carrega a ROM
+  sozinha assim que você interage com ela (o `.zip` vai direto para o
+  EmulatorJS, que tenta extrair; se falhar, use o seletor abaixo). Veja
+  `assets/game/README.md`.
 - **Sem a ROM** (ou jogando em `file://`, ou offline), a TV abre um seletor de
-  arquivo: escolha o `adventure.bin` direto no computador — funciona até em
-  `file://` e a ROM nunca sai da sua máquina.
+  arquivo: escolha o `.bin`/`.a26`/`.rom` direto no computador — funciona até
+  em `file://` e a ROM nunca sai da sua máquina.
 - **Precisa de internet** para baixar o emulador do CDN do EmulatorJS. Nada
   mais é baixado junto.
 - Sem nenhuma ROM por perto, clique em **JOGAR A RECRIAÇÃO**: abre o minigame
@@ -373,7 +377,7 @@ js/emulator.js        TV do Castelo de Gelo: EmulatorJS/Stella (ou recriação)
 js/game.js            Loop, entrada, colisões, inimigos e estados do jogo
 assets/               Sprite original do lobo e arquivos-fonte
 assets/music/         Faixas locais da playlist (criar quando for usar)
-assets/game/          Coloque AQUI a sua adventure.bin (não vai para o repo; ver assets/game/README.md)
+assets/game/          Coloque AQUI a sua ROM (adventure.bin/.a26/.rom/.zip — não vai para o repo; ver assets/game/README.md)
 shots/                Capturas de tela de teste
 ```
 
