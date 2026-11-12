@@ -231,7 +231,7 @@
 
     st.easter.rpoKey = true;
     st.maxHearts += 1;
-    st.hearts = st.maxHearts;
+    st.hearts = Math.min(st.maxHearts, st.hearts + 1);
     if (hasSound()) Sound.sfx('adv_win');
     gameToast(st, 'VOCÊ ENCONTROU O NOME DE WARREN ROBINETT! +1 CORAÇÃO MÁXIMO', 4);
     try {

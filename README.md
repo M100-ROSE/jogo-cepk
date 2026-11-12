@@ -260,8 +260,9 @@ para encontrar o ovo.
 
 Aproxime-se da TV e use **AÇÃO/Espaço**. A TV abre o **Atari 2600 de verdade**
 (emulador **Stella** via EmulatorJS, core `atari2600`) rodando *Adventure*.
-Tanto lá quanto na recriação, o botão dourado **ACHEI O NOME DE ROBINETT!**
-registra o achado (veja "Recompensa" abaixo):
+Na TV de verdade, o botão dourado **ACHEI O NOME DE ROBINETT!** registra o
+achado (na recriação, a própria recriação concede a recompensa ao tocar no
+ponto invisível — veja "Recompensa" abaixo):
 
 - **ROM não vem no repositório** (direitos autorais). Coloque **a sua** cópia
   em **`assets/game/`** (Atari 2600, NTSC, ~4 KB — backup pessoal
@@ -284,22 +285,27 @@ registra o achado (veja "Recompensa" abaixo):
 
 **Recompensa (uma vez por jornada):** achar a mensagem escondida por Warren
 Robinett em *Adventure* ("Created by Warren Robinett" — o primeiro easter egg
-da história dos jogos) vale **+1 coração máximo**. Toque em **ACHEI O NOME DE
-ROBINETT!** depois de encontrar a sala secreta dentro do jogo. O botão
-desativa depois de usado; sair e voltar não duplica a recompensa. Vale tanto
-para o emulador real quanto para a recriação.
+da história dos jogos) vale **+1 coração máximo**. No emulador real, toque em
+**ACHEI O NOME DE ROBINETT!** depois de encontrar a sala secreta dentro do
+jogo; na recriação, o achado é automático ao encostar no ponto invisível
+(veja o spoiler). O botão desativa depois de usado; sair e voltar não duplica
+a recompensa. Vale tanto para o emulador real quanto para a recriação — é a
+mesma chave `rpoKey`, uma vez por jornada.
 
 <details>
 <summary>Spoiler do minigame e recompensa</summary>
 
 No modo recriação, **setas/WASD** (ou o joystick) movem o quadradinho, e
-**AÇÃO/Esc** sai a qualquer momento. A jornada tem três telas: atravesse a
+**AÇÃO/Esc** sai a qualquer momento. A jornada tem quatro telas: atravesse a
 porta leste do castelo, desvie do dragão na caverna e toque no teto perto do
-canto direito para achar a passagem secreta; no quarto do ovo, encoste na
-chave. O dragão da caverna não tira vidas: ele apenas devolve o quadradinho
-ao início. Ao pegar a chave do ovo, você recebe **+1 coração máximo** — uma
-vez por jornada (a mesma chave `rpoKey` do emulador real; um coração ou outro,
-nunca os dois). Na tela de vitória, AÇÃO/Esc retorna ao Castelo de Gelo.
+canto direito para achar a passagem secreta; no quarto do ovo
+(**O OVO**), não há chave — existe um **ponto invisível** perto do canto
+superior direito, e entrar na fase avisa que "Algo aqui não aparece…". Ao
+encostar nele, você entra no aposento oculto **O NOME**, com o nome
+**CRIADO POR WARREN ROBINETT**, e recebe **+1 coração máximo** — uma vez por
+jornada (a mesma chave `rpoKey` do emulador real; um coração ou outro,
+nunca os dois). O dragão da caverna não tira vidas: ele apenas devolve o
+quadradinho ao início. Na tela de vitória, AÇÃO/Esc retorna ao Castelo de Gelo.
 
 Tudo é uma **homenagem não oficial**: a recriação e a sala são
 reinterpretações originais em pixel art, feitas com formas, cores e nomes

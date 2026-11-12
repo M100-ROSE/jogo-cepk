@@ -719,14 +719,6 @@ const JOY_DEADZONE = 0.16;
    porque 0717 contém os dígitos 7 e 1. */
 const SECRET_CODES = [
   { code: '0717', kind: 'music' },
-  { code: '/ALIEN', kind: 'alien' },
-  { code: '/BATMAN', kind: 'batman' },
-  { code: '/IRONMAN', kind: 'ironman' },
-  { code: '/SPIDERMAN', kind: 'spiderman' },
-  { code: '/MYERS', kind: 'myers' },
-  { code: '/PANIC', kind: 'panic' },
-  { code: '/BLOCK', kind: 'mario' },
-  { code: '/RPO', kind: 'rpo' },
 ];
 const SECRET_TIMEOUT_MS = 2000;
 let secretBuffer = '';
@@ -1936,6 +1928,7 @@ function freshAdvState() {
     dragonDir: 1,
     won: false,
     rewardGiven: false,
+    ovoHint: false,
   };
 }
 
@@ -2072,21 +2065,28 @@ function updateAdventure(st, dt) {
       a.x = egg.spawn.x;
       a.y = egg.spawn.y;
       Sound.sfx('gate');
+      if (!a.ovoHint) {
+        a.ovoHint = true;
+        toast(st, 'Algo aqui não aparece…', 4);
+      }
     }
   } else if (a.screen === 2) {
     const egg = ADVENTURE.maps[2];
-    if (egg.key && !a.won && dist(advCenterX(a), advCenterY(a), egg.key.x, egg.key.y) < 18) {
+    if (egg.dot && !a.won && dist(advCenterX(a), advCenterY(a), egg.dot.x, egg.dot.y) < egg.dot.r) {
+      const name = ADVENTURE.maps[3];
+      a.screen = 3;
+      a.x = name.spawn.x;
+      a.y = name.spawn.y;
       a.phase = 'win';
       a.won = true;
       Sound.sfx('adv_win');
-
-      // Recompensa única por jornada (não muda a posição do lobo real).
+      st.shake = 6;
       if (st.easter && !st.easter.rpoKey) {
         st.easter.rpoKey = true;
         a.rewardGiven = true;
         st.maxHearts += 1;
         st.hearts = Math.min(st.maxHearts, st.hearts + 1);
-        toast(st, 'A CHAVE DO OVO É SUA. +1 coração máximo.', 4);
+        toast(st, 'VOCÊ ENCONTROU O NOME DE WARREN ROBINETT! +1 CORAÇÃO MÁXIMO.', 4.5);
         spawnParticles(st, st.player.x, st.player.y - 18, '#e6bb4f', 16, { speed: 34, life: 0.9 });
         spawnParticles(st, st.player.x, st.player.y - 18, '#ffe9a3', 8, { speed: 24, life: 0.7 });
       }

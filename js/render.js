@@ -5514,8 +5514,8 @@ function drawFade(c, alpha) {
 function drawAdventure(c, st, t) {
   const a = (st && st.adv) || {};
   const hasAdv = typeof ADVENTURE !== 'undefined' && ADVENTURE && Array.isArray(ADVENTURE.maps);
-  const labels = ['O CASTELO', 'A CAVERNA', 'O OVO'];
-  const idx = Math.max(0, Math.min(2, a.screen | 0));
+  const labels = ['O CASTELO', 'A CAVERNA', 'O OVO', 'O NOME'];
+  const idx = Math.max(0, Math.min(3, a.screen | 0));
   const M = (hasAdv && ADVENTURE.maps[idx]) || { walls: [] };
   const hint = (hasAdv && ADVENTURE.hint) || 'SETAS/WASD: MOVER    AÇÃO/ESC: SAIR';
   const credit = (hasAdv && ADVENTURE.credit) || 'CRIADO POR WARREN ROBINETT';
@@ -5524,6 +5524,7 @@ function drawAdventure(c, st, t) {
     { face: '#c9a24a', top: '#e6bb4f', shade: '#6a5315', edge: '#3a2c0a', label: '#e6bb4f' },
     { face: '#b8433a', top: '#d85a4a', shade: '#6a1f1a', edge: '#3a0f0c', label: '#d85a4a' },
     { face: '#8a8a90', top: '#b0b0b8', shade: '#4a4a52', edge: '#26262c', label: '#b0b0b8' },
+    { face: '#141414', top: '#e6bb4f', shade: '#050505', edge: '#000000', label: '#ffe9a3' },
   ];
   const S = styles[idx];
   const flick = 0.5 + 0.5 * Math.sin(t * 9.1);
@@ -5540,8 +5541,8 @@ function drawAdventure(c, st, t) {
   for (let gx = 20; gx < VW; gx += 40) px(c, gx, 28, 1, VH - 28, '#ffffff');
   c.globalAlpha = 1;
 
-  // estrelas discretas na fase do ovo
-  if (idx === 2) {
+  // estrelas discretas nas fases finais (ovo e nome)
+  if (idx >= 2) {
     for (let i = 0; i < 52; i++) {
       const sx = 12 + ((i * 83 + 11) % 376);
       const sy = 36 + ((i * 47 + 19) % 252);
@@ -5567,6 +5568,22 @@ function drawAdventure(c, st, t) {
     px(c, w.x, w.y + wh - 1, ww, 1, S.edge);
     // brilho de 1px
     if (ww > 4 && wh > 4) px(c, w.x + 2, w.y + 3, ww - 4, 1, 'rgba(255,255,255,0.12)');
+  }
+
+  // aposento oculto (tela do nome) — a "sala" criada pelo ponto invisível
+  if (idx === 3) {
+    drawText(c, credit, VW / 2, 96, {
+      scale: 1, color: '#a97c25', align: 'center',
+    });
+    c.globalAlpha = 0.7 + 0.3 * Math.sin(now * 2.4);
+    drawText(c, 'WARREN ROBINETT', VW / 2, 132, {
+      scale: 2, color: '#e6bb4f', align: 'center', shadow: '#000000',
+    });
+    c.globalAlpha = 1;
+    const halo = 0.5 + 0.5 * Math.sin(now * 2.4 + 1.3);
+    c.globalAlpha = 0.25 + halo * 0.55;
+    pixelCircle(c, VW / 2, 180, 1, '#ffffff');
+    c.globalAlpha = 1;
   }
 
   // porta de saída (mapa do castelo)
@@ -5603,29 +5620,17 @@ function drawAdventure(c, st, t) {
     c.globalAlpha = 1;
   }
 
-  // chave dourada da fase final
-  if (idx === 2 && M.key && Number.isFinite(M.key.x)) {
-    const kx = M.key.x;
-    const ky = (M.key.y || 150) + Math.round(Math.sin(now * 2.1) * 2);
-    const pulse = 0.5 + 0.5 * Math.sin(now * 2.8);
-    c.globalAlpha = 0.10 + pulse * 0.16;
-    pixelCircle(c, kx, ky, 12 + pulse * 2, '#ffe9a3');
-    c.globalAlpha = 1;
-    // bow (cabeça da chave)
-    pixelCircle(c, kx - 5, ky, 4, '#c9a24a');
-    pixelCircle(c, kx - 5, ky, 2, '#7a5a10');
-    px(c, kx - 6, ky - 3, 2, 1, '#ffe9a3');
-    // haste
-    px(c, kx - 1, ky - 1, 11, 2, '#e6bb4f');
-    px(c, kx - 1, ky - 1, 11, 1, '#ffe9a3');
-    // dentes
-    px(c, kx + 7, ky + 1, 2, 2, '#e6bb4f');
-    px(c, kx + 3, ky + 1, 2, 2, '#e6bb4f');
-    px(c, kx + 9, ky + 1, 1, 1, '#a97c25');
-    // brilho
-    c.globalAlpha = 0.45 + pulse * 0.55;
-    px(c, kx + 6, ky - 2, 1, 1, '#fff6d0');
-    c.globalAlpha = 1;
+  // glint periódico do ponto invisível (1× a cada 5s, sutil)
+  if (idx === 2 && M.dot && Number.isFinite(M.dot.x) && Number.isFinite(M.dot.y)) {
+    const g = now % 5;
+    if (g < 0.75) {
+      const k = 1 - g / 0.75;
+      c.globalAlpha = k * 0.85;
+      px(c, M.dot.x, M.dot.y, 1, 1, '#fff6d0');
+      c.globalAlpha = k * 0.3;
+      pixelCircle(c, M.dot.x, M.dot.y, 3, '#ffe9a3');
+      c.globalAlpha = 1;
+    }
   }
 
   // dragão/ave blocky da caverna
@@ -5713,25 +5718,25 @@ function drawAdventure(c, st, t) {
   if (a.phase === 'win') {
     px(c, 0, 0, VW, VH, 'rgba(0,0,0,0.74)');
     const pulse = 0.5 + 0.5 * Math.sin(now * 2.4);
-    c.globalAlpha = 0.10 + pulse * 0.12;
-    pixelCircle(c, VW / 2, 84, 34, '#e6bb4f');
+    // ponto invisível (homenagem a Adventure, Atari 2600)
+    c.globalAlpha = 0.08 + pulse * 0.10;
+    pixelCircle(c, VW / 2, 84, 12, '#e6bb4f');
     c.globalAlpha = 1;
-    // chave pequena
-    pixelCircle(c, VW / 2 - 7, 84, 5, '#c9a24a');
-    pixelCircle(c, VW / 2 - 7, 84, 2, '#2a2208');
-    px(c, VW / 2 - 2, 83, 15, 2, '#e6bb4f');
-    px(c, VW / 2 - 2, 83, 15, 1, '#ffe9a3');
-    px(c, VW / 2 + 9, 85, 2, 3, '#e6bb4f');
-    px(c, VW / 2 + 4, 85, 2, 2, '#e6bb4f');
+    pixelCircle(c, VW / 2, 84, 3, '#f4f1e6');
 
-    drawText(c, credit, VW / 2, 110, {
+    drawText(c, credit, VW / 2, 96, {
       scale: 1, color: '#e6bb4f', align: 'center', shadow: '#000000',
     });
-    drawText(c, 'A CHAVE DO OVO É SUA', VW / 2, 140, {
+    drawText(c, 'VOCÊ ENCONTROU O NOME DE ROBINETT', VW / 2, 120, {
       scale: 1, color: '#f4f1d0', align: 'center', shadow: '#000000',
     });
+    c.globalAlpha = 0.75 + pulse * 0.25;
+    drawText(c, 'WARREN ROBINETT', VW / 2, 170, {
+      scale: 2, color: '#e6bb4f', align: 'center', shadow: '#000000',
+    });
+    c.globalAlpha = 1;
     c.globalAlpha = 0.55 + pulse * 0.45;
-    drawText(c, 'AÇÃO/ESC: SAIR', VW / 2, 160, {
+    drawText(c, 'AÇÃO/ESC: SAIR', VW / 2, 205, {
       scale: 1, color: '#8a8f98', align: 'center',
     });
     c.globalAlpha = 1;
