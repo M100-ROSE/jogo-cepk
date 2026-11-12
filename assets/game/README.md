@@ -45,5 +45,5 @@ para servidor nenhum, fica no navegador.
   isso **é preciso internet na primeira vez** (depois o navegador pode cachear).
 - Sem ROM, a TV oferece a **recriação in-canvas** do minigame Adventure —
   original, em pixel art própria, sem nenhum asset oficial.
-- A recompensa por "Achar o nome de Robinett" (+1 coração máximo, uma vez por
-  jornada) é a mesma nos dois modos.
+- A recompensa por descobrir **um segredo clássico do Adventure**
+  (+1 coração máximo, uma vez por jornada) é a mesma nos dois modos.
