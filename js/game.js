@@ -2384,12 +2384,13 @@ function canPassGate(st, side) {
 }
 
 function startTransition(st, side) {
-  if (st.transition) return;
+  if (st.transition) return true;
   const target = st.room.exits[side];
-  if (!target) return;
-  if (!canPassGate(st, side)) return;
+  if (!target) return true;
+  if (!canPassGate(st, side)) return false;
   st.transition = { side, target, t: 0, switched: false };
   Sound.sfx('click');
+  return true;
 }
 
 function applyTransition(st) {
@@ -2506,17 +2507,11 @@ function movePlayer(st, dt) {
   // Eixo X
   p.x += p.vx * dt;
   if (p.x - 7 < INNER.x) {
-    if (room.exits.west && insideDoorGapEW(p)) {
-      startTransition(st, 'west');
-      return;
-    }
+    if (room.exits.west && insideDoorGapEW(p) && startTransition(st, 'west')) return;
     p.x = INNER.x + 7;
   }
   if (p.x + 7 > INNER.r) {
-    if (room.exits.east && insideDoorGapEW(p)) {
-      startTransition(st, 'east');
-      return;
-    }
+    if (room.exits.east && insideDoorGapEW(p) && startTransition(st, 'east')) return;
     p.x = INNER.r - 7;
   }
   resolveSolidsAxis(st, 'x');
@@ -2524,17 +2519,11 @@ function movePlayer(st, dt) {
   // Eixo Y
   p.y += p.vy * dt;
   if (p.y - 13 < INNER.y) {
-    if (room.exits.north && insideDoorGapNS(p)) {
-      startTransition(st, 'north');
-      return;
-    }
+    if (room.exits.north && insideDoorGapNS(p) && startTransition(st, 'north')) return;
     p.y = INNER.y + 13;
   }
   if (p.y > INNER.b) {
-    if (room.exits.south && insideDoorGapNS(p)) {
-      startTransition(st, 'south');
-      return;
-    }
+    if (room.exits.south && insideDoorGapNS(p) && startTransition(st, 'south')) return;
     p.y = INNER.b;
   }
   resolveSolidsAxis(st, 'y');
