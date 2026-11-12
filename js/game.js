@@ -166,6 +166,14 @@ const SECRET_COMMANDS = [
   { code: '/ESTRELA', weapon: 'undertale_star' },
   { code: '/MOEDA', weapon: 'ultrakill_coin' },
   { code: '/REGIMENTO', weapon: 'richard_paper' },
+  { code: '/ALIEN', room: 'cripta' },
+  { code: '/BATMAN', room: 'ruinas' },
+  { code: '/IRONMAN', room: 'sala_tesouro' },
+  { code: '/SPIDERMAN', room: 'caverna' },
+  { code: '/MYERS', room: 'cemiterio' },
+  { code: '/PANIC', room: 'cabana' },
+  { code: '/BLOCK', room: 'clareira' },
+  { code: '/RPO', room: 'sala_rpo' },
 ];
 const COMMAND_TIMEOUT_MS = 4000;
 
@@ -349,6 +357,8 @@ function freshEasterFlags() {
     konamiBuf: '',
     konamiT: 0,
     marioUsed: false,
+    // Minigame Adventure: recompensa (coração máximo) uma vez por jornada
+    rpoKey: false,
   };
 }
 
@@ -399,6 +409,7 @@ function createState() {
     powerBoostT: 0,
     shield: 0,
     easter: freshEasterFlags(),
+    adv: freshAdvState(),
     hasLantern: false,
     gateUnlocked: false,
     gateMsgCd: 0,
@@ -560,6 +571,7 @@ function resetRun(st) {
   st.powerBoostT = 0;
   st.shield = 0;
   st.easter = freshEasterFlags();
+  st.adv = freshAdvState();
   st.player.boostTrailT = 0;
 
   st.player.x = 200;
@@ -703,7 +715,17 @@ const JOY_DEADZONE = 0.16;
 /* Código secreto: 0717 ativa/desativa a playlist alternativa. O buffer
    expira após 2s. O buffer é alimentado antes do seletor de dificuldade
    porque 0717 contém os dígitos 7 e 1. */
-const SECRET_CODES = [{ code: '0717', kind: 'music' }];
+const SECRET_CODES = [
+  { code: '0717', kind: 'music' },
+  { code: '/ALIEN', kind: 'alien' },
+  { code: '/BATMAN', kind: 'batman' },
+  { code: '/IRONMAN', kind: 'ironman' },
+  { code: '/SPIDERMAN', kind: 'spiderman' },
+  { code: '/MYERS', kind: 'myers' },
+  { code: '/PANIC', kind: 'panic' },
+  { code: '/BLOCK', kind: 'mario' },
+  { code: '/RPO', kind: 'rpo' },
+];
 const SECRET_TIMEOUT_MS = 2000;
 let secretBuffer = '';
 let secretLastAt = 0;
@@ -778,6 +800,40 @@ function matchSecretCommand(raw) {
   return SECRET_COMMANDS.find((entry) => entry.code === code) || null;
 }
 
+/* Invoca o acesso à sala secreta (ex.: /ALIEN, /BATMAN, ...). Mostra um toast
+   com o nome da sala e diz que o jogador está indo para lá. */
+function grantSecretRoom(st, room, code) {
+  if (!st || st.mode !== 'play' || st.transition) return false;
+  // Se o minigame Adventure estiver aberto, fecha-o antes de teleportar
+  // (evita o overlay do minigame sobre a sala de destino).
+  if (st.adv && st.adv.active) exitAdventure(st);
+  const targetRoom = st.world.rooms[room];
+  if (!targetRoom) return false;
+  st.room = targetRoom;
+  targetRoom.visited = true;
+  // projéteis pertencem à sala de origem (como em applyTransition)
+  if (Array.isArray(st.projectiles)) st.projectiles.length = 0;
+  const p = st.player;
+  p.x = DOOR_CX;
+  p.y = DOOR_CY;
+  // Garante spawn livre de sólidos (ex.: /RPO nasceria sobre a base da TV).
+  for (const s of targetRoom.solids || []) {
+    const box = playerBox(p);
+    if (box.x < s.x + s.w && box.x + box.w > s.x && box.y < s.y + s.h && box.y + box.h > s.y) {
+      p.y = s.y + s.h + 13;
+    }
+  }
+  p.vx = 0;
+  p.vy = 0;
+  p.guarding = false;
+  p.guardT = 0;
+  p.rollT = 0;
+  p.rollInvuln = 0;
+  showRoomToast(st);
+  toast(st, 'Teleportado para ' + targetRoom.name, 2.5);
+  return true;
+}
+
 /* Invoca a arma secreta direto para a mão do lobo. Se ele já carrega algo,
    o item antigo é largado no chão (sem perder progresso de chave/cálice). */
 function grantSecretWeapon(st, weaponKey) {
@@ -823,6 +879,10 @@ function executeSecretCommand(st, raw) {
   }
   const entry = matchSecretCommand(raw);
   if (!entry) return false;
+  if (entry.room) {
+    // Códigos secretos tipo /ALIEN, /BATMAN... que vão direto para a sala do easter egg.
+    return grantSecretRoom(st, entry.room, entry.code);
+  }
   return grantSecretWeapon(st, entry.weapon);
 }
 
@@ -854,6 +914,11 @@ function handleSecretCommandKey(e) {
   const exact = matches.find((entry) => entry.code === candidate);
   if (exact) {
     commandBuffer = '';
+    if (exact.room) {
+      // Comandos secretos que vão direto para a sala do easter egg.
+      grantSecretRoom(gameState, exact.room, exact.code);
+      return true;
+    }
     if (!grantSecretWeapon(gameState, exact.weapon)) {
       toast(gameState, 'Não foi possível invocar agora.', 1.8);
     }
@@ -1001,17 +1066,28 @@ function handleKeyDown(e) {
     return;
   }
 
+  if (
+    ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space', 'KeyF', 'KeyW', 'KeyA', 'KeyS', 'KeyD', 'KeyC'].includes(code)
+  ) {
+    e.preventDefault();
+  }
+
+  // Minigame Adventure: captura movimento e saída antes do resto do jogo
+  // (inclusive antes dos comandos secretos, para não alimentar o buffer).
+  if (gameState && gameState.adv && gameState.adv.active) {
+    if (!e.repeat && (code === 'Escape' || code === 'Space' || code === 'Enter')) {
+      adventureAction(gameState);
+      e.preventDefault();
+    }
+    keys[code] = true; // permite mover com setas/WASD enquanto o minigame está aberto
+    return;
+  }
+
   // Comandos de armas secretas (ex.: /diamante) são consumidos antes das
   // teclas de jogo para não mover o lobo nem abrir o mapa sem querer.
   if (handleSecretCommandKey(e)) {
     e.preventDefault();
     return;
-  }
-
-  if (
-    ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space', 'KeyF', 'KeyW', 'KeyA', 'KeyS', 'KeyD', 'KeyC'].includes(code)
-  ) {
-    e.preventDefault();
   }
 
   if (code === 'Enter' || code === 'NumpadEnter') {
@@ -1342,6 +1418,10 @@ function setupTouch() {
       e.preventDefault();
       Sound.init();
       if (!gameState) return;
+      if (gameState.adv && gameState.adv.active) {
+        adventureAction(gameState);
+        return;
+      }
       if (gameState.mode === 'play') doAction(gameState);
       else if (gameState.mode === 'cutscene') advanceCutscene(gameState, false);
       else if (gameState.mode === 'title' || gameState.mode === 'gameover' || gameState.mode === 'win') startGame();
@@ -1803,8 +1883,189 @@ function tryEasterEgg(st) {
       }
       return true;
     }
+
+    if (egg.kind === 'rpo') {
+      // A TV CRT abre o minigame Adventure (homenagem original).
+      startAdventure(st);
+      return true;
+    }
   }
   return false;
+}
+
+/* ------------------------------------------------------------------ */
+/* Minigame Adventure (homenagem original ao Atari 2600)              */
+/* ------------------------------------------------------------------ */
+
+const ADV_SIZE = 8; // caixa de colisão do avatar do minigame (topo-esquerda em x/y)
+
+function freshAdvState() {
+  const spawn = ADVENTURE.maps[0].spawn;
+  return {
+    active: false,
+    phase: 'play',
+    screen: 0,
+    x: spawn.x,
+    y: spawn.y,
+    flash: 0,
+    cooldown: 0,
+    dragonX: ADVENTURE.maps[1].dragon ? ADVENTURE.maps[1].dragon.x : 60,
+    dragonDir: 1,
+    won: false,
+    rewardGiven: false,
+  };
+}
+
+function startAdventure(st) {
+  if (!st || (st.adv && st.adv.active)) return;
+  st.adv = freshAdvState();
+  st.adv.active = true;
+  st.adv.cooldown = 0.3;
+  Sound.sfx('crt');
+  Sound.pauseMusic();
+  toast(st, 'Ligue o console...', 1.6);
+}
+
+function exitAdventure(st) {
+  if (!st || !st.adv) return;
+  st.adv.active = false;
+  st.adv.cooldown = 0.3;
+  Sound.resumeMusic();
+  Sound.sfx('click');
+}
+
+function adventureAction(st) {
+  if (!st || !st.adv || !st.adv.active) return;
+  if (st.adv.cooldown > 0) return;
+  // AÇÃO/ESC sempre sai do minigame, inclusive na tela de vitória.
+  exitAdventure(st);
+}
+
+function advRect(a) {
+  return { x: a.x, y: a.y, w: ADV_SIZE, h: ADV_SIZE };
+}
+
+function advCenterX(a) {
+  return a.x + ADV_SIZE / 2;
+}
+
+function advCenterY(a) {
+  return a.y + ADV_SIZE / 2;
+}
+
+function advMoveAxis(st, axis, amount) {
+  const a = st.adv;
+  const map = ADVENTURE.maps[a.screen];
+  if (!map) return;
+  if (axis === 'x') a.x += amount;
+  else a.y += amount;
+
+  // Resolve cada parede separadamente no eixo movido (evita atravessar).
+  for (const w of map.walls) {
+    if (
+      a.x + ADV_SIZE > w.x &&
+      a.x < w.x + w.w &&
+      a.y + ADV_SIZE > w.y &&
+      a.y < w.y + w.h
+    ) {
+      if (axis === 'x') {
+        if (amount > 0) a.x = w.x - ADV_SIZE;
+        else if (amount < 0) a.x = w.x + w.w;
+      } else if (amount > 0) {
+        a.y = w.y - ADV_SIZE;
+      } else if (amount < 0) {
+        a.y = w.y + w.h;
+      }
+    }
+  }
+
+  a.x = clamp(a.x, 0, VW - ADV_SIZE);
+  a.y = clamp(a.y, 0, VH - ADV_SIZE);
+}
+
+function updateAdventure(st, dt) {
+  const a = st.adv;
+  if (!a || !a.active) return;
+
+  a.cooldown = Math.max(0, a.cooldown - dt);
+  a.flash = Math.max(0, a.flash - dt);
+  st.shake = Math.max(0, st.shake - dt * 14);
+  if (st.toast.time > 0) st.toast.time = Math.max(0, st.toast.time - dt);
+  updateParticles(st, dt);
+
+  const map = ADVENTURE.maps[a.screen];
+  if (!map) return;
+
+  // Movimento: input.moveX/moveY já vêm normalizados por readInput.
+  const dx = (input.moveX || 0) * ADVENTURE.speed * dt;
+  const dy = (input.moveY || 0) * ADVENTURE.speed * dt;
+  if (dx !== 0) advMoveAxis(st, 'x', dx);
+  if (dy !== 0) advMoveAxis(st, 'y', dy);
+
+  // Portas do mapa atual (Castelo → Caverna).
+  const pr = advRect(a);
+  for (const door of map.doors || []) {
+    if (rectsOverlap(pr, door) && door.to !== a.screen) {
+      const next = ADVENTURE.maps[door.to];
+      if (!next) continue;
+      a.screen = door.to;
+      a.x = next.spawn.x;
+      a.y = next.spawn.y;
+      Sound.sfx('click');
+      break;
+    }
+  }
+
+  if (a.screen === 1) {
+    const cave = ADVENTURE.maps[1];
+    const dg = cave.dragon;
+    if (dg) {
+      a.dragonX += dg.speed * dt * a.dragonDir;
+      if (a.dragonX < dg.min) {
+        a.dragonX = dg.min;
+        a.dragonDir = 1;
+      } else if (a.dragonX > dg.max) {
+        a.dragonX = dg.max;
+        a.dragonDir = -1;
+      }
+
+      if (a.flash <= 0 && dist(advCenterX(a), advCenterY(a), a.dragonX, dg.y2 || dg.y) < 12) {
+        a.flash = 0.5;
+        st.shake = 5;
+        Sound.sfx('hit');
+        // Volta ao início da caverna, sem perder vidas.
+        a.x = cave.spawn.x;
+        a.y = cave.spawn.y;
+      }
+    }
+
+    // Passagem secreta para o quarto do ovo (teto, perto de x=300).
+    if (cave.secret && dist(advCenterX(a), advCenterY(a), cave.secret.x, cave.secret.y) < cave.secret.r) {
+      const egg = ADVENTURE.maps[2];
+      a.screen = 2;
+      a.x = egg.spawn.x;
+      a.y = egg.spawn.y;
+      Sound.sfx('gate');
+    }
+  } else if (a.screen === 2) {
+    const egg = ADVENTURE.maps[2];
+    if (egg.key && !a.won && dist(advCenterX(a), advCenterY(a), egg.key.x, egg.key.y) < 18) {
+      a.phase = 'win';
+      a.won = true;
+      Sound.sfx('adv_win');
+
+      // Recompensa única por jornada (não muda a posição do lobo real).
+      if (st.easter && !st.easter.rpoKey) {
+        st.easter.rpoKey = true;
+        a.rewardGiven = true;
+        st.maxHearts += 1;
+        st.hearts = Math.min(st.maxHearts, st.hearts + 1);
+        toast(st, 'A CHAVE DO OVO É SUA. +1 coração máximo.', 4);
+        spawnParticles(st, st.player.x, st.player.y - 18, '#e6bb4f', 16, { speed: 34, life: 0.9 });
+        spawnParticles(st, st.player.x, st.player.y - 18, '#ffe9a3', 8, { speed: 24, life: 0.7 });
+      }
+    }
+  }
 }
 
 function doAction(st) {
@@ -1875,6 +2136,7 @@ function doAction(st) {
       mina_esquecida: { color: '#7fb0b8', accent: '#7fe6e6', msg: 'A rocha cedeu, revelando a Mina Esquecida!' },
       obby_roblox: { color: '#5adf6a', accent: '#5a86c9', msg: 'Um bloco se deslocou: bem-vindo ao Obby Perdido!' },
       estudio_rbiana: { color: '#e86aa0', accent: '#7fe6e6', msg: 'A parede da Cabana esconde o Estúdio da Rbiana!' },
+      sala_rpo: { color: '#7fe6e6', accent: '#e6bb4f', msg: 'A estante se abriu para o Quarto do Jogador Nº 1!' },
     };
     const fx = revealFx[pass.target] || { color: '#c9c0a0', accent: '#e6c26a', msg: 'Uma passagem secreta se abriu!' };
 
@@ -3217,6 +3479,12 @@ function render(st, t) {
     return;
   }
 
+  // Minigame Adventure ocupa o canvas inteiro (desenho em render.js).
+  if (st.adv && st.adv.active) {
+    drawAdventure(ctx, st, t);
+    return;
+  }
+
   // Sala
   ctx.save();
   ctx.translate(Math.round(st.shakeX || 0), Math.round(st.shakeY || 0));
@@ -3324,7 +3592,9 @@ function loop(now) {
 
   readInput();
 
-  if (gameState.mode === 'play') {
+  if (gameState.adv && gameState.adv.active) {
+    updateAdventure(gameState, dt);
+  } else if (gameState.mode === 'play') {
     update(gameState, dt);
   } else if (gameState.mode === 'cutscene') {
     updateCutscene(gameState, dt);

@@ -90,6 +90,16 @@ completo.
   4. volta para a trilha original
 - A playlist local é opcional. Sem faixas configuradas, o código pula esse modo
   e avisa que ela está vazia.
+- **Teleporte para easter eggs**: digite os comandos abaixo durante o jogo (ou
+  no modal `CÓD` no celular) para ir direto à sala do respectivo segredo:
+  - `/ALIEN` → **Cripta** (ovo alienígena)
+  - `/BATMAN` → **Ruínas Esquecidas** (sinal no céu)
+  - `/IRONMAN` → **Sala do Tesouro Real** (reator arc)
+  - `/SPIDERMAN` → **Caverna Úmida** (âncora de teia)
+  - `/MYERS` → **Cemitério Antigo** (figura silenciosa)
+  - `/PANIC` → **Cabana Abandonada** (telefone)
+  - `/BLOCK` → **Clareira da Escola** (bloco de interrogação)
+  - `/RPO` → **Quarto do Jogador Nº 1** (TV CRT + minigame Adventure)
 - **Salas secretas**: as rachaduras são quase invisíveis. Só aparecem quando
   você chega bem perto da parede certa, e ficam ainda mais apagadas em salas
   escuras — use a lanterna e investigue com AÇÃO/Espaço.
@@ -120,6 +130,9 @@ completo.
   - **Sagrário**, parede sul → **Pódio de Senna**: pódio de três degraus,
     capacete e bandeiras quadriculadas. A homenagem dá um impulso de velocidade.
   - **Escadaria do Castelo**, parede leste → **Santuário de Richard**.
+  - **Ruínas Esquecidas**, parede norte → **Quarto do Jogador Nº 1**: um
+    cômodo aconchegante com TV CRT ligada e um pôster de chave. Aproxime-se da
+    TV e use AÇÃO/Espaço para jogar o minigame **Adventure** (detalhes abaixo).
   - Cada passagem só existe depois de revelada e precisa ser redescoberta em
     cada partida.
   </details>
@@ -234,6 +247,34 @@ exibe links nem endereços de canal. Nada aqui reproduz avatar, foto, rosto,
 voz, logo, thumbnail ou qualquer asset oficial: o quarto é uma **interpretação
 original em pixel art**, feita com formas genéricas e cores próprias. É uma
 homenagem **não oficial**, sem vínculo com a criadora.
+
+### Quarto do Jogador Nº 1 (homenagem a *Ready Player One*)
+
+Atrás da parede norte das **Ruínas Esquecidas** fica o **Quarto do Jogador Nº
+1**: um cômodo aconchegante com pôster de chave, pilha de fitas, pufe e uma **TV
+CRT** ligada no centro. É uma homenagem original à cena do quarto em *Ready
+Player One* em que se joga *Adventure* para encontrar o ovo.
+
+Aproxime-se da TV e use **AÇÃO/Espaço** para ligar o console. Dentro do
+minigame, **setas/WASD** (ou o joystick) movem o quadradinho, e **AÇÃO/Esc**
+sai a qualquer momento. A jornada tem três telas: atravesse a porta leste do
+castelo, desvie do dragão na caverna e toque no teto perto do canto direito para
+achar a passagem secreta; no quarto do ovo, encoste na chave.
+
+<details>
+<summary>Spoiler do minigame e recompensa</summary>
+
+O dragão da caverna não tira vidas: ele apenas devolve o quadradinho ao início.
+Ao pegar a chave do ovo, você recebe **+1 coração máximo** — uma vez por
+jornada. Sair e voltar ao minigame não duplica a recompensa. Na tela de vitória,
+AÇÃO/Esc retorna ao quarto.
+
+Tudo é uma **homenagem não oficial**: o minigame e a sala são reinterpretações
+originais em pixel art, feitas com formas e cores próprias. Não há sprites,
+telas, músicas, logos ou qualquer asset oficial de *Adventure*, da Atari ou de
+*Ready Player One*.
+
+</details>
 
 ### Playlist local (recomendada offline)
 

@@ -58,6 +58,7 @@ const ROOM_META = {
   mina_esquecida: { name: 'Mina Esquecida', theme: 'cave', short: 'Mina' },
   obby_roblox: { name: 'Obby Perdido', theme: 'obby', short: 'Obby' },
   estudio_rbiana: { name: 'Estúdio da Rbiana', theme: 'studio', short: 'Rbiana' },
+  sala_rpo: { name: 'Quarto do Jogador Nº 1', theme: 'cabin', short: 'Jogador 1' },
 };
 
 /* Ligações bloqueadas (sem porta) */
@@ -107,6 +108,7 @@ const EASTER_EGGS = {
   // Easter eggs geek com ação (os passivos ficam fora de EASTER_EGGS).
   batman: { kind: 'batman', room: 'ruinas', x: 72, y: 120, interact: 48 },
   panic: { kind: 'panic', room: 'cabana', x: 330, y: 222, interact: 40 },
+  rpo: { kind: 'rpo', room: 'sala_rpo', x: 200, y: 150, interact: 52 },
 };
 
 /* Easter eggs geek de cultura pop, em pixel art original (sem logos ou
@@ -137,6 +139,53 @@ const SECRET_PASSAGES = {
   serra: { side: 'east', target: 'mina_esquecida' },
   floresta: { side: 'north', target: 'obby_roblox' },
   cabana: { side: 'north', target: 'estudio_rbiana' },
+  ruinas: { side: 'north', target: 'sala_rpo' },
+};
+
+/* Minigame "Adventure": homenagem original ao clássico do Atari 2600.
+   Os dados são lidos tanto por game.js (lógica/estado) quanto por render.js
+   (desenho do minigame dentro do mesmo canvas). */
+const ADVENTURE = {
+  speed: 62,
+  credit: 'CRIADO POR WARREN ROBINETT',
+  hint: 'SETAS/WASD: MOVER    AÇÃO/ESC: SAIR',
+  maps: [
+    {
+      label: 'O CASTELO',
+      walls: [
+        { x: 0, y: 30, w: 400, h: 10 }, { x: 0, y: 290, w: 400, h: 10 },
+        { x: 0, y: 30, w: 10, h: 90 }, { x: 0, y: 180, w: 10, h: 120 },
+        { x: 390, y: 30, w: 10, h: 90 }, { x: 390, y: 180, w: 10, h: 120 },
+        { x: 110, y: 88, w: 70, h: 10 }, { x: 110, y: 88, w: 10, h: 72 },
+        { x: 250, y: 170, w: 70, h: 10 }, { x: 310, y: 110, w: 10, h: 70 },
+      ],
+      doors: [{ x: 390, y: 120, w: 10, h: 60, to: 1, side: 'east' }],
+      spawn: { x: 50, y: 240 },
+    },
+    {
+      label: 'A CAVERNA',
+      walls: [
+        { x: 0, y: 30, w: 400, h: 10 }, { x: 0, y: 290, w: 400, h: 10 },
+        { x: 0, y: 30, w: 10, h: 90 }, { x: 0, y: 180, w: 10, h: 120 },
+        { x: 390, y: 30, w: 10, h: 270 },
+        { x: 200, y: 140, w: 10, h: 110 },
+      ],
+      doors: [],
+      spawn: { x: 24, y: 150 },
+      dragon: { x: 60, y: 110, min: 40, max: 340, speed: 34, y2: 110 },
+      secret: { x: 300, y: 36, r: 10 },
+    },
+    {
+      label: 'O OVO',
+      walls: [
+        { x: 0, y: 30, w: 400, h: 10 }, { x: 0, y: 290, w: 400, h: 10 },
+        { x: 0, y: 30, w: 10, h: 270 }, { x: 390, y: 30, w: 10, h: 270 },
+      ],
+      doors: [],
+      spawn: { x: 200, y: 235 },
+      key: { x: 200, y: 150 },
+    },
+  ],
 };
 
 const ENEMY_DEFS = [
@@ -338,6 +387,7 @@ function buildWorld() {
   addSecretRoom('mina_esquecida', 7, 0, { west: 'serra' });
   addSecretRoom('obby_roblox', 5, -1, { south: 'floresta' });
   addSecretRoom('estudio_rbiana', 4, -1, { south: 'cabana' });
+  addSecretRoom('sala_rpo', 2, -1, { south: 'ruinas' });
 
   // Escode as passagens nas salas-mãe até o jogador descobri-las
   for (const parentId in SECRET_PASSAGES) {
@@ -546,6 +596,14 @@ function buildDecor(room) {
     add('ring_light', 70, 120, { r: 12, solid: { w: 14, h: 10 } });
     add('live_camera', 80, 215, { r: 12, solid: { w: 14, h: 10 } });
     add('pc_tower', 330, 220, { r: 10, solid: { w: 16, h: 20 } });
+    return;
+  }
+
+  if (room.id === 'sala_rpo') {
+    add('crt_tv', 200, 150, { r: 30, solid: { w: 36, h: 18 } });
+    add('tape_shelf', 320, 120, { r: 14, solid: { w: 26, h: 12 } });
+    add('beanbag', 90, 220, { r: 14 });
+    add('poster_key', 290, 80, { r: 0 });
     return;
   }
 

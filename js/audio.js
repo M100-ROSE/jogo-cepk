@@ -686,6 +686,19 @@ class GameAudio {
         // blip curto de bloco
         this.tone(740, 0.06, 'square', 0.12, 990);
         break;
+      case 'crt':
+        // TV CRT ligando: estalo seco + chiado de alta frequência
+        this.tone(1400, 0.04, 'square', 0.09, 600);
+        this.noise(0.18, 0.1, 3600);
+        this.tone(90, 0.22, 'sawtooth', 0.06, 160, 0.02);
+        break;
+      case 'adv_win':
+        // fanfarra curta 8-bit original (arpejo ascendente + acorde final)
+        [523, 659, 784, 1047].forEach((f, i) => {
+          this.tone(f, 0.12, 'square', 0.13, null, i * 0.1);
+        });
+        this.tone(1319, 0.3, 'square', 0.1, null, 0.42);
+        break;
       default:
         break;
     }

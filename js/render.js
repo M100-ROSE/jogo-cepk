@@ -224,6 +224,10 @@ const TALL_DECOR = new Set([
   'myers_figure',
   'phone_scare',
   'question_block',
+  'crt_tv',
+  'tape_shelf',
+  'beanbag',
+  'poster_key',
 ]);
 
 function isTallDecor(d) {
@@ -987,6 +991,7 @@ const SECRET_HINT_STYLE = {
   serra: { dark: '#141117', light: '#d0cce0' },
   floresta: { dark: '#1d160f', light: '#dee8d6' },
   cabana: { dark: '#1a120a', light: '#ecdcc4' },
+  ruinas: { dark: '#2b271f', light: '#cfc9b8' },
 };
 const SECRET_HINT_RANGE = 56;
 
@@ -3036,6 +3041,242 @@ function drawDecor(c, d, t, room) {
       q(2, 6, 1, 1);
       break;
     }
+    case 'crt_tv': {
+      // TV CRT sobre móvel de madeira, console retrô e joystick no chão
+      const sd = d.seed || 0;
+      const flick = 0.5 + 0.5 * Math.sin(t * 7.3 + sd);
+      const boot = 0.5 + 0.5 * Math.sin(t * 2.1 + sd * 0.7);
+      pixelEllipse(c, x + 2, y + 1, 34, 6, 'rgba(0,0,0,0.38)');
+
+      // fios no chão saindo do console
+      c.strokeStyle = 'rgba(8,8,10,0.85)';
+      c.lineWidth = 1;
+      c.beginPath();
+      c.moveTo(x + 46, y - 1);
+      c.quadraticCurveTo(x + 52, y + 2, x + 60, y + 1);
+      c.stroke();
+      c.beginPath();
+      c.moveTo(x + 34, y - 1);
+      c.quadraticCurveTo(x + 29, y + 3, x + 23, y + 2);
+      c.stroke();
+
+      // móvel
+      px(c, x - 32, y - 19, 64, 17, '#5a3b24');
+      px(c, x - 32, y - 19, 64, 2, '#7d5734');
+      px(c, x - 32, y - 19, 2, 17, '#6a4628');
+      px(c, x + 30, y - 19, 2, 17, '#3d2717');
+      px(c, x - 32, y - 3, 64, 1, '#2e1d12');
+      px(c, x - 29, y - 2, 5, 2, '#3d2717');
+      px(c, x + 24, y - 2, 5, 2, '#3d2717');
+      // portas e gavetas
+      px(c, x - 28, y - 15, 25, 10, '#4a301c');
+      px(c, x - 27, y - 14, 23, 8, '#54371f');
+      px(c, x - 20, y - 10, 9, 2, '#8a6238');
+      px(c, x + 2, y - 15, 26, 10, '#4a301c');
+      px(c, x + 3, y - 14, 24, 8, '#54371f');
+      px(c, x + 12, y - 10, 9, 2, '#8a6238');
+      // veios da madeira
+      px(c, x - 30, y - 17, 18, 1, '#4a301c');
+      px(c, x + 6, y - 6, 20, 1, '#4a301c');
+
+      // corpo do CRT
+      px(c, x - 23, y - 57, 46, 38, '#24272b');
+      px(c, x - 23, y - 57, 46, 2, '#4a4e54');
+      px(c, x - 23, y - 57, 2, 38, '#3a3e44');
+      px(c, x + 21, y - 57, 2, 38, '#141619');
+      px(c, x - 23, y - 21, 46, 2, '#101215');
+      // moldura interna da tela
+      px(c, x - 19, y - 53, 31, 29, '#111316');
+      px(c, x - 18, y - 52, 29, 27, '#0e2416');
+
+      // tela de fósforo verde com flicker
+      c.globalAlpha = 0.92 + flick * 0.08;
+      px(c, x - 18, y - 51, 29, 25, '#1c4a2a');
+      c.globalAlpha = 0.10 + flick * 0.10;
+      px(c, x - 18, y - 51, 29, 25, '#7aff9a');
+      c.globalAlpha = 1;
+      // scanlines
+      for (let sy = 0; sy < 25; sy += 3) {
+        px(c, x - 18, y - 51 + sy, 29, 1, 'rgba(3,16,8,0.5)');
+      }
+      // banda de varredura
+      const scanY = y - 51 + Math.floor((t * 16 + sd) % 25);
+      px(c, x - 18, scanY, 29, 1, 'rgba(200,255,210,0.12)');
+      // reflexo
+      px(c, x - 15, y - 48, 7, 1, 'rgba(225,255,230,0.22)');
+      px(c, x - 16, y - 46, 1, 4, 'rgba(225,255,230,0.10)');
+      // "P1" e ponto de luz
+      drawText(c, 'P1', x - 5, y - 45, { scale: 1, color: '#9affb4' });
+      c.globalAlpha = 0.55 + boot * 0.45;
+      px(c, x + 6, y - 34, 2, 2, '#eaffd0');
+      c.globalAlpha = 1;
+
+      // painel de controles à direita
+      px(c, x + 12, y - 51, 7, 25, '#1c1e22');
+      pixelCircle(c, x + 15, y - 48, 2, '#55595f');
+      pixelCircle(c, x + 15, y - 48, 1, '#2a2d31');
+      pixelCircle(c, x + 15, y - 43, 2, '#55595f');
+      pixelCircle(c, x + 15, y - 43, 1, '#2a2d31');
+      for (let i = 0; i < 3; i++) px(c, x + 14, y - 38 + i * 2, 4, 1, '#0c0d10');
+      c.globalAlpha = 0.25 + boot * 0.75;
+      px(c, x + 14, y - 31, 2, 1, '#c94a3a');
+      c.globalAlpha = 1;
+
+      // console retrô no chão
+      px(c, x + 30, y - 7, 22, 7, '#121317');
+      px(c, x + 30, y - 7, 22, 1, '#2e3038');
+      px(c, x + 33, y - 5, 10, 1, '#050506');
+      px(c, x + 45, y - 5, 3, 2, '#8a2a22');
+      px(c, x + 31, y - 2, 1, 2, '#0a0a0c');
+      px(c, x + 49, y - 2, 1, 2, '#0a0a0c');
+
+      // joystick
+      px(c, x + 37, y - 12, 3, 5, '#1a1b20');
+      px(c, x + 35, y - 14, 7, 2, '#26282e');
+      px(c, x + 38, y - 16, 1, 2, '#3a3d46');
+      px(c, x + 35, y - 14, 7, 1, '#3c4048');
+      c.strokeStyle = 'rgba(8,8,10,0.9)';
+      c.beginPath();
+      c.moveTo(x + 37, y - 6);
+      c.quadraticCurveTo(x + 33, y - 2, x + 33, y - 1);
+      c.stroke();
+      break;
+    }
+    case 'tape_shelf': {
+      // estante baixa de madeira com VHS e cartuchos
+      const rng = mulberry32((d.seed || 0) + 77);
+      pixelEllipse(c, x + 1, y + 1, 34, 6, 'rgba(0,0,0,0.35)');
+      // moldura
+      px(c, x - 33, y - 46, 66, 46, '#4a3320');
+      px(c, x - 33, y - 46, 66, 3, '#6a4a2e');
+      px(c, x - 33, y - 46, 2, 46, '#5c3f27');
+      px(c, x + 31, y - 46, 2, 46, '#33220f');
+      px(c, x - 33, y - 2, 66, 2, '#2a1e14');
+      px(c, x - 31, y - 44, 62, 38, '#2a1e14');
+      // prateleira do meio
+      px(c, x - 31, y - 25, 62, 3, '#6a4a2e');
+      px(c, x - 31, y - 25, 62, 1, '#7d5734');
+      px(c, x - 31, y - 22, 62, 1, '#1f150d');
+
+      // caixas e cartuchos na prateleira de cima
+      const boxCols = ['#7a5a3a', '#8a3a2e', '#2e5a7a', '#6a5a3a'];
+      for (let i = 0; i < 4; i++) {
+        const bx = x - 28 + i * 12;
+        px(c, bx, y - 41, 10, 14, boxCols[i]);
+        px(c, bx, y - 41, 10, 1, 'rgba(255,255,255,0.16)');
+        px(c, bx, y - 28, 10, 1, 'rgba(0,0,0,0.35)');
+        px(c, bx + 2, y - 37, 6, 4, '#d8cfb0');
+        px(c, bx + 2, y - 32, 4, 1, 'rgba(30,20,14,0.55)');
+      }
+      // cartucho inclinado encostado na direita
+      c.save();
+      c.translate(x + 24, y - 27);
+      c.rotate(-0.16);
+      px(c, -5, -15, 10, 15, '#4a6a3a');
+      px(c, -5, -15, 10, 1, '#6a8a52');
+      px(c, -3, -11, 6, 5, '#d8cfb0');
+      c.restore();
+
+      // fitas VHS coloridas na prateleira de baixo
+      const tapeCols = ['#8a3a2e', '#2e5a8a', '#c9a24a', '#5a4a7a', '#3a6b3a'];
+      for (let i = 0; i < 5; i++) {
+        const tx = x - 29 + i * 11;
+        const col = tapeCols[i];
+        px(c, tx, y - 20, 9, 17, col);
+        px(c, tx, y - 20, 9, 1, 'rgba(255,255,255,0.18)');
+        px(c, tx + 7, y - 20, 2, 17, 'rgba(0,0,0,0.28)');
+        // etiqueta
+        px(c, tx + 1, y - 17, 6, 5, '#d8cfb0');
+        px(c, tx + 1, y - 15, 6, 1, 'rgba(40,30,22,0.6)');
+        px(c, tx + 1, y - 11, 4, 1, 'rgba(40,30,22,0.45)');
+        // fita aparecendo
+        px(c, tx + 1, y - 5, 5, 2, 'rgba(20,16,14,0.75)');
+      }
+      // fita deitada
+      px(c, x + 18, y - 9, 12, 5, '#2e5a8a');
+      px(c, x + 18, y - 9, 12, 1, '#5a86b0');
+      px(c, x + 20, y - 7, 5, 2, '#d8cfb0');
+
+      // poeira/ruído
+      speckle(c, x - 30, y - 42, 60, 38, 'rgba(220,200,160,0.14)', 10, rng, 1);
+      break;
+    }
+    case 'beanbag': {
+      // pufe escuro afundado
+      const sd = d.seed || 0;
+      pixelEllipse(c, x + 2, y + 1, 31, 7, 'rgba(0,0,0,0.4)');
+      pixelEllipse(c, x, y - 7, 28, 13, '#241f2d');
+      pixelEllipse(c, x, y - 9, 27, 12, '#332d40');
+      pixelEllipse(c, x - 2, y - 12, 23, 9, '#403850');
+      pixelEllipse(c, x - 3, y - 14, 18, 6, '#4b425c');
+      // afundamento no centro
+      pixelEllipse(c, x + 3, y - 16, 9, 3, '#282330');
+      px(c, x + 1, y - 16, 5, 1, '#221e2a');
+      // dobras
+      c.strokeStyle = 'rgba(22,18,28,0.8)';
+      c.lineWidth = 1;
+      c.beginPath();
+      c.moveTo(x - 24, y - 7);
+      c.quadraticCurveTo(x - 14, y - 14, x - 6, y - 15);
+      c.stroke();
+      c.beginPath();
+      c.moveTo(x + 24, y - 7);
+      c.quadraticCurveTo(x + 15, y - 14, x + 8, y - 15);
+      c.stroke();
+      // costura central
+      c.strokeStyle = 'rgba(120,108,150,0.35)';
+      c.setLineDash([1, 2]);
+      c.beginPath();
+      c.moveTo(x - 2, y - 21);
+      c.quadraticCurveTo(x + 3, y - 12, x + 1, y - 2);
+      c.stroke();
+      c.setLineDash([]);
+      // brilho de tecido
+      px(c, x - 14, y - 19, 9, 1, 'rgba(150,138,180,0.22)');
+      px(c, x - 18, y - 15, 4, 1, 'rgba(150,138,180,0.16)');
+      c.globalAlpha = 0.12 + 0.06 * Math.sin(t * 1.3 + sd);
+      pixelEllipse(c, x, y - 11, 34, 15, '#7a6aa0');
+      c.globalAlpha = 1;
+      break;
+    }
+    case 'poster_key': {
+      // pôster abstrato de parede com chave dourada
+      const sd = d.seed || 0;
+      const pulse = 0.5 + 0.5 * Math.sin(t * 2 + sd);
+      px(c, x - 20, y - 48, 40, 42, '#33291d');
+      px(c, x - 20, y - 48, 40, 2, '#4a3b28');
+      px(c, x - 18, y - 46, 36, 38, '#c9a24a');
+      px(c, x - 17, y - 45, 34, 36, '#1e2433');
+      // formas geométricas
+      px(c, x - 14, y - 42, 12, 10, '#2c3548');
+      px(c, x + 2, y - 44, 10, 8, '#4a7a7a');
+      px(c, x + 1, y - 35, 8, 8, '#b8433a');
+      px(c, x - 13, y - 30, 9, 9, '#6a5a8a');
+      // linhas de horizonte
+      px(c, x - 14, y - 18, 28, 1, '#3a4a62');
+      px(c, x - 14, y - 15, 20, 1, '#2e3a50');
+      px(c, x - 14, y - 12, 24, 1, '#2e3a50');
+      // halo da chave
+      c.globalAlpha = 0.06 + pulse * 0.08;
+      pixelCircle(c, x + 2, y - 25, 10, '#e6bb4f');
+      c.globalAlpha = 1;
+      // chave dourada pixelada
+      pixelCircle(c, x - 6, y - 27, 4, '#e6bb4f');
+      px(c, x - 7, y - 29, 3, 1, '#ffe9a3');
+      px(c, x - 6, y - 27, 2, 2, '#1e2433');
+      px(c, x - 2, y - 28, 11, 2, '#e6bb4f');
+      px(c, x - 2, y - 28, 11, 1, '#ffe9a3');
+      px(c, x + 7, y - 26, 2, 3, '#c9a24a');
+      px(c, x + 3, y - 26, 2, 2, '#c9a24a');
+      // etiqueta pequena
+      drawText(c, 'P1', x, y - 17, { scale: 1, color: '#d8cfb0', align: 'center' });
+      // cantos/alfinetes
+      px(c, x - 18, y - 46, 2, 2, '#ffe9a3');
+      px(c, x + 16, y - 46, 2, 2, '#ffe9a3');
+      px(c, x - 18, y - 10, 2, 2, '#8a6a2a');
+      px(c, x + 16, y - 10, 2, 2, '#8a6a2a');
+      break;
+    }
     default:
       break;
   }
@@ -4754,4 +4995,237 @@ function drawFade(c, alpha) {
   if (alpha <= 0) return;
   c.fillStyle = `rgba(3,4,6,${alpha})`;
   c.fillRect(0, 0, VW, VH);
+}
+
+/* =========================================================================
+   Minigame Adventure (tela cheia, estética Atari 2600)
+   ========================================================================= */
+
+function drawAdventure(c, st, t) {
+  const a = (st && st.adv) || {};
+  const hasAdv = typeof ADVENTURE !== 'undefined' && ADVENTURE && Array.isArray(ADVENTURE.maps);
+  const labels = ['O CASTELO', 'A CAVERNA', 'O OVO'];
+  const idx = Math.max(0, Math.min(2, a.screen | 0));
+  const M = (hasAdv && ADVENTURE.maps[idx]) || { walls: [] };
+  const hint = (hasAdv && ADVENTURE.hint) || 'SETAS/WASD: MOVER    AÇÃO/ESC: SAIR';
+  const credit = (hasAdv && ADVENTURE.credit) || 'CRIADO POR WARREN ROBINETT';
+
+  const styles = [
+    { face: '#c9a24a', top: '#e6bb4f', shade: '#6a5315', edge: '#3a2c0a', label: '#e6bb4f' },
+    { face: '#b8433a', top: '#d85a4a', shade: '#6a1f1a', edge: '#3a0f0c', label: '#d85a4a' },
+    { face: '#8a8a90', top: '#b0b0b8', shade: '#4a4a52', edge: '#26262c', label: '#b0b0b8' },
+  ];
+  const S = styles[idx];
+  const flick = 0.5 + 0.5 * Math.sin(t * 9.1);
+  const now = Number.isFinite(t) ? t : 0;
+
+  c.save();
+
+  // fundo chapado
+  px(c, 0, 0, VW, VH, '#000000');
+
+  // grade discreta de "celas" no chão
+  c.globalAlpha = 0.05;
+  for (let gy = 56; gy < VH; gy += 32) px(c, 0, gy, VW, 1, '#ffffff');
+  for (let gx = 20; gx < VW; gx += 40) px(c, gx, 28, 1, VH - 28, '#ffffff');
+  c.globalAlpha = 1;
+
+  // estrelas discretas na fase do ovo
+  if (idx === 2) {
+    for (let i = 0; i < 52; i++) {
+      const sx = 12 + ((i * 83 + 11) % 376);
+      const sy = 36 + ((i * 47 + 19) % 252);
+      const tw = 0.5 + 0.5 * Math.sin(now * 2.2 + i * 1.7);
+      c.globalAlpha = 0.16 + tw * 0.34;
+      px(c, sx, sy, 1, 1, i % 7 === 0 ? '#ffe9a3' : '#cfd8e8');
+    }
+    c.globalAlpha = 1;
+  }
+
+  // paredes do mapa atual
+  const walls = Array.isArray(M.walls) ? M.walls : [];
+  for (const w of walls) {
+    if (!w || !Number.isFinite(w.x) || !Number.isFinite(w.y)) continue;
+    const ww = Math.max(1, w.w || 1);
+    const wh = Math.max(1, w.h || 1);
+    px(c, w.x, w.y, ww, wh, S.face);
+    px(c, w.x, w.y, ww, Math.min(2, wh), S.top);
+    px(c, w.x, w.y, 1, wh, S.top);
+    px(c, w.x + ww - 2, w.y, 2, wh, S.shade);
+    px(c, w.x, w.y + wh - 2, ww, 2, S.shade);
+    px(c, w.x, w.y, ww, 1, S.edge);
+    px(c, w.x, w.y + wh - 1, ww, 1, S.edge);
+    // brilho de 1px
+    if (ww > 4 && wh > 4) px(c, w.x + 2, w.y + 3, ww - 4, 1, 'rgba(255,255,255,0.12)');
+  }
+
+  // porta de saída (mapa do castelo)
+  const doors = Array.isArray(M.doors) ? M.doors : [];
+  for (const d of doors) {
+    if (!d || !Number.isFinite(d.x)) continue;
+    const dw = d.w || 18, dh = d.h || 34;
+    px(c, d.x - 1, d.y - 1, dw + 2, dh + 2, S.edge);
+    px(c, d.x, d.y, dw, dh, '#050403');
+    px(c, d.x + 2, d.y + 2, dw - 4, dh - 4, '#0d0a06');
+    px(c, d.x, d.y, dw, 1, S.shade);
+    // brilho/seta sutil indicando saída
+    const p = 0.5 + 0.5 * Math.sin(now * 3.2);
+    c.globalAlpha = 0.35 + p * 0.5;
+    drawText(c, '→', d.x + dw / 2 - 2, d.y + dh / 2 - 3, {
+      scale: 1, color: S.top, align: 'center',
+    });
+    c.globalAlpha = 1;
+  }
+
+  // passagem secreta da caverna (quase invisível, revela ao aproximar)
+  if (idx === 1 && M.secret && Number.isFinite(M.secret.x)) {
+    const sec = M.secret;
+    const plx = Number.isFinite(a.x) ? a.x : ((M.spawn && M.spawn.x) || 200);
+    const ply = Number.isFinite(a.y) ? a.y : ((M.spawn && M.spawn.y) || 200);
+    const near = Math.hypot(plx + 4 - sec.x, ply + 4 - sec.y) < (sec.r || 10) * 2.6;
+    c.globalAlpha = near ? 0.5 : 0.07;
+    px(c, sec.x - 2, sec.y, 4, 1, '#d8d8d0');
+    px(c, sec.x - 1, sec.y + 1, 2, 1, '#d8d8d0');
+    if (near) {
+      c.globalAlpha = 0.10;
+      pixelCircle(c, sec.x, sec.y, 4, '#d8d8d0');
+    }
+    c.globalAlpha = 1;
+  }
+
+  // chave dourada da fase final
+  if (idx === 2 && M.key && Number.isFinite(M.key.x)) {
+    const kx = M.key.x;
+    const ky = (M.key.y || 150) + Math.round(Math.sin(now * 2.1) * 2);
+    const pulse = 0.5 + 0.5 * Math.sin(now * 2.8);
+    c.globalAlpha = 0.10 + pulse * 0.16;
+    pixelCircle(c, kx, ky, 12 + pulse * 2, '#ffe9a3');
+    c.globalAlpha = 1;
+    // bow (cabeça da chave)
+    pixelCircle(c, kx - 5, ky, 4, '#c9a24a');
+    pixelCircle(c, kx - 5, ky, 2, '#7a5a10');
+    px(c, kx - 6, ky - 3, 2, 1, '#ffe9a3');
+    // haste
+    px(c, kx - 1, ky - 1, 11, 2, '#e6bb4f');
+    px(c, kx - 1, ky - 1, 11, 1, '#ffe9a3');
+    // dentes
+    px(c, kx + 7, ky + 1, 2, 2, '#e6bb4f');
+    px(c, kx + 3, ky + 1, 2, 2, '#e6bb4f');
+    px(c, kx + 9, ky + 1, 1, 1, '#a97c25');
+    // brilho
+    c.globalAlpha = 0.45 + pulse * 0.55;
+    px(c, kx + 6, ky - 2, 1, 1, '#fff6d0');
+    c.globalAlpha = 1;
+  }
+
+  // dragão/ave blocky da caverna
+  if (idx === 1 && M.dragon && Number.isFinite(M.dragon.y)) {
+    const dx = Number.isFinite(a.dragonX) ? a.dragonX : (M.dragon.x || 200);
+    const dy = M.dragon.y;
+    const dir = a.dragonDir < 0 ? -1 : 1;
+    const flap = Math.round(Math.sin(now * 8) * 1);
+    c.save();
+    c.translate(dx, dy);
+    c.scale(dir, 1);
+    // cauda
+    px(c, -11, 1, 4, 2, '#8c2a22');
+    px(c, -12, 2, 2, 1, '#6a1f1a');
+    // asa
+    px(c, -5, -10 + flap, 7, 3, '#6a1f1a');
+    px(c, -2, -13 + flap, 4, 4, '#8c2a22');
+    px(c, -6, -7, 8, 3, '#8c2a22');
+    px(c, -4, -13 + flap, 3, 1, '#b8433a');
+    // corpo
+    px(c, -8, -2, 16, 8, '#8c2a22');
+    px(c, -7, -4, 14, 4, '#b8433a');
+    px(c, -6, -4, 12, 1, '#d85a4a');
+    px(c, -6, 4, 12, 2, '#d87a5a');
+    // cabeça, bico e chifre
+    px(c, 5, -7, 6, 6, '#b8433a');
+    px(c, 6, -7, 4, 1, '#d85a4a');
+    px(c, 6, -9, 2, 2, '#6a1f1a');
+    px(c, 9, 0, 4, 3, '#d85a4a');
+    px(c, 10, 3, 4, 1, '#3a0f0c');
+    px(c, 11, 3, 1, 1, '#f4e6c0');
+    // olho
+    px(c, 7, -5, 2, 2, '#ffd24a');
+    px(c, 8, -5, 1, 1, '#3a0f0c');
+    // patas
+    px(c, -6, 6, 2, 3, '#6a1f1a');
+    px(c, 2, 6, 2, 3, '#6a1f1a');
+    c.restore();
+  }
+
+  // jogador (quadrado 8x8 amarelo-pálido)
+  if (!(a.phase === 'win')) {
+    const plx = Number.isFinite(a.x) ? a.x : ((M.spawn && M.spawn.x) || 200);
+    const ply = Number.isFinite(a.y) ? a.y : ((M.spawn && M.spawn.y) || 180);
+    const facing = a.dir || a.face || 'down';
+    px(c, plx - 1, ply - 1, 10, 10, '#141007');
+    px(c, plx, ply, 8, 8, '#f4f1d0');
+    px(c, plx, ply, 8, 1, '#fffde8');
+    px(c, plx, ply, 1, 8, '#fffde8');
+    px(c, plx + 6, ply + 6, 2, 2, '#c9c4a0');
+    px(c, plx + 6, ply, 2, 1, '#c9c4a0');
+    // entalhe indicando a direção
+    const notch = '#3a3418';
+    if (facing === 'left') px(c, plx, ply + 3, 2, 2, notch);
+    else if (facing === 'right') px(c, plx + 6, ply + 3, 2, 2, notch);
+    else if (facing === 'up') px(c, plx + 3, ply, 2, 2, notch);
+    else px(c, plx + 3, ply + 6, 2, 2, notch);
+  }
+
+  // flash de dano/impacto
+  const flash = Number.isFinite(a.flash) ? Math.max(0, Math.min(1, a.flash)) : 0;
+  if (flash > 0) {
+    const red = idx === 1;
+    c.globalAlpha = flash * 0.55;
+    px(c, 0, 0, VW, VH, red ? '#ff5040' : '#ffffff');
+    c.globalAlpha = 1;
+  }
+
+  // barra superior
+  px(c, 0, 0, VW, 28, '#0b0b0b');
+  px(c, 0, 27, VW, 1, S.shade);
+  px(c, 6, 11, 2, 2, S.top);
+  drawText(c, (M.label || labels[idx]).toUpperCase(), 12, 10, {
+    scale: 1, color: S.label,
+  });
+  drawText(c, hint, VW - 8, 10, {
+    scale: 1, color: '#8a8f98', align: 'right',
+  });
+  // linha de brilho sob a barra
+  c.globalAlpha = 0.22 + flick * 0.10;
+  px(c, 0, 28, VW, 1, S.top);
+  c.globalAlpha = 1;
+
+  // tela de vitória (por cima de tudo, inclusive da barra)
+  if (a.phase === 'win') {
+    px(c, 0, 0, VW, VH, 'rgba(0,0,0,0.74)');
+    const pulse = 0.5 + 0.5 * Math.sin(now * 2.4);
+    c.globalAlpha = 0.10 + pulse * 0.12;
+    pixelCircle(c, VW / 2, 84, 34, '#e6bb4f');
+    c.globalAlpha = 1;
+    // chave pequena
+    pixelCircle(c, VW / 2 - 7, 84, 5, '#c9a24a');
+    pixelCircle(c, VW / 2 - 7, 84, 2, '#2a2208');
+    px(c, VW / 2 - 2, 83, 15, 2, '#e6bb4f');
+    px(c, VW / 2 - 2, 83, 15, 1, '#ffe9a3');
+    px(c, VW / 2 + 9, 85, 2, 3, '#e6bb4f');
+    px(c, VW / 2 + 4, 85, 2, 2, '#e6bb4f');
+
+    drawText(c, credit, VW / 2, 110, {
+      scale: 1, color: '#e6bb4f', align: 'center', shadow: '#000000',
+    });
+    drawText(c, 'A CHAVE DO OVO É SUA', VW / 2, 140, {
+      scale: 1, color: '#f4f1d0', align: 'center', shadow: '#000000',
+    });
+    c.globalAlpha = 0.55 + pulse * 0.45;
+    drawText(c, 'AÇÃO/ESC: SAIR', VW / 2, 160, {
+      scale: 1, color: '#8a8f98', align: 'center',
+    });
+    c.globalAlpha = 1;
+  }
+
+  c.restore();
 }
